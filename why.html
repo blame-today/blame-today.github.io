@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>why this matters — blame.today</title>
+  <meta name="description" content="the architecture is the product. blame is the vehicle. the property: cache is opinion, protocol is record." />
+
+  <meta property="og:title" content="why this matters — blame.today" />
+  <meta property="og:description" content="the architecture is the product. blame is the vehicle." />
+  <meta property="og:type" content="website" />
+
+  <style>
+    :root {
+      --yellow: #FFE74C;
+      --red:    #FF3B3B;
+      --teal:   #4ECDC4;
+      --ink:    #000;
+      --paper:  #fff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--yellow);
+      color: var(--ink);
+      font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.55;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, var(--ink) 1px, transparent 1.4px);
+      background-size: 6px 6px;
+      opacity: 0.10;
+      pointer-events: none;
+    }
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      position: relative;
+    }
+    h1 {
+      font-family: 'Anton', 'Helvetica Neue', sans-serif;
+      font-weight: 900;
+      font-size: 64px;
+      line-height: 0.9;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+    }
+    .tagline {
+      font-family: 'Anton', sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 18px;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      display: inline-block;
+      padding: 6px 14px;
+      transform: rotate(-1.5deg);
+      margin: 8px 0 20px;
+    }
+    .lede {
+      font-weight: 600;
+      font-size: 17px;
+      max-width: 600px;
+      margin: 8px 0 28px;
+    }
+    h2 {
+      font-family: 'Anton', sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 28px;
+      margin: 40px 0 12px;
+    }
+    h3 {
+      font-family: 'Anton', sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 18px;
+      margin: 24px 0 8px;
+    }
+    p { margin: 8px 0 14px; }
+    ul { padding-left: 22px; }
+    li { margin: 4px 0; }
+    .card {
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 16px 0;
+    }
+    .card.teal { background: var(--teal); }
+    .card.red { background: var(--red); color: var(--paper); }
+    .card.red a { color: var(--paper); }
+    .card h3 { margin-top: 4px; }
+    table.props { width: 100%; border-collapse: collapse; font-size: 14px; }
+    table.props th, table.props td { text-align: left; padding: 8px 12px 8px 0; vertical-align: top; border-bottom: 1.5px solid rgba(0,0,0,0.15); }
+    table.props th { font-family: 'Anton', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; font-size: 11px; opacity: 0.7; }
+    table.props td:first-child { font-weight: 700; width: 38%; }
+    a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+    a:hover { color: var(--red); }
+    .small { font-size: 12px; opacity: 0.65; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    strong { font-weight: 700; }
+    em { font-style: italic; font-weight: 600; }
+    .pullquote {
+      font-family: 'Anton', sans-serif;
+      font-weight: 900;
+      font-size: 26px;
+      line-height: 1.1;
+      letter-spacing: -0.005em;
+      text-transform: uppercase;
+      background: var(--paper);
+      border-left: 8px solid var(--red);
+      padding: 18px 20px;
+      margin: 20px 0;
+    }
+    footer { margin-top: 60px; padding-top: 20px; border-top: 3px solid var(--ink); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; display: flex; justify-content: space-between; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main>
+    <p class="small"><a href="/">← back</a></p>
+    <h1>why this matters</h1>
+    <div class="tagline">the architecture is the product</div>
+
+    <div class="lede">
+      blame.today is a small app sitting on a property that isn't small.
+      <strong>the public owns the data; we own a view of it.</strong> the silly
+      surface is the marketing; the real cargo is the architecture
+      underneath. this page is for the people who care about the cargo.
+    </div>
+
+    <div class="pullquote">cache is opinion.<br/>protocol is record.</div>
+
+    <h2>what the architecture buys you</h2>
+    <div class="card">
+      <table class="props">
+        <thead><tr><th>guarantee</th><th>mechanism</th></tr></thead>
+        <tbody>
+          <tr><td>trust without trusting us</td><td>every vote is a signed nostr event on 7 public relays we don't run</td></tr>
+          <tr><td>survival without us</td><td>shut our worker off tomorrow — the votes still exist on the relays</td></tr>
+          <tr><td>scale for $0</td><td>free-tier composability across CF / AWS / Azure / GCP / Deno</td></tr>
+          <tr><td>auditability by anyone</td><td>recompute the leaderboard yourself; we publish the exact filter</td></tr>
+          <tr><td>truth-layer is unbombable</td><td>relays are the record; our cache is opinion. attack the cache, the truth keeps flowing</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>what happens when things break</h2>
+    <p>
+      the interesting test of an architecture isn't how it behaves when everything works.
+      it's how gracefully it fails. four scenarios — none of them break the property.
+    </p>
+
+    <div class="card">
+      <h3>what if you DDoS our cloudflare worker?</h3>
+      <p>
+        cloudflare's anycast edge absorbs L3/L4 floods automatically — that's free,
+        planetary-scale, and applies to every plan including ours. the real risk is
+        exhausting our 100k req/day worker quota. defense in layers:
+      </p>
+      <ul>
+        <li><strong>edge caching</strong> on <code>/leaderboard?day=X</code> means 99% of reads never invoke the worker</li>
+        <li><strong>rate-limit rule</strong> on the worker endpoints — abusive IPs get bounced at the edge, not against our quota</li>
+        <li><strong>bot fight mode</strong> trims obvious scripts</li>
+        <li><strong>param validation</strong> rejects cache-busting query strings before they hit the database</li>
+      </ul>
+      <p>
+        worst case if all of that fails: the worker returns 429 until UTC midnight,
+        the iOS app shows the last-cached board (it's local-first), and
+        <strong>the nostr relays keep accepting real votes regardless.</strong>
+        the ledger doesn't depend on us.
+      </p>
+      <p>
+        with a $5/mo hard cap on the worker, the worst-case <em>financial</em>
+        outcome is $5 burned. an attacker rents a botnet costing more than that.
+        the cost of attacking us is bounded; their incentive is too.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>what if cloudflare goes down?</h3>
+      <p>
+        the same cache logic runs on AWS Lambda, Azure Functions, GCP Cloud Run,
+        Deno Deploy. clients try the next provider. the relays kept running through
+        the entire CF outage. eventual consistency does the rest.
+      </p>
+      <p class="small">
+        today we're only on cloudflare. multi-provider rollout is in the
+        release plan — but the <em>protocol</em> is platform-agnostic, so
+        switching deployment targets is a worker rewrite, not a data migration.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>what if blame.today the company gets sued or shut down?</h3>
+      <p>
+        the data isn't ours. the worker is a view. the canonical record is on
+        7 public nostr relays operated by independent parties, none of them named
+        "blame.today inc." even hostile takedown of every relay we publish to is
+        recoverable: any new relay accepts the same protocol, and clients can
+        reconfigure. <strong>the protocol outlives the company.</strong>
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>what if we quietly miscount?</h3>
+      <p>
+        we publish the filter, the relay list, and the rules. anyone with a
+        websocket can recompute today's leaderboard themselves. if our numbers
+        diverge from the relays', we're lying — and it's detectable in seconds,
+        not months. <strong>we cannot lie undetectably.</strong> that's the entire
+        point.
+      </p>
+    </div>
+
+    <h2>where else this pattern fits</h2>
+    <p>
+      the cargo we're carrying is: <em>cache is opinion, protocol is record.</em>
+      anywhere that property would matter:
+    </p>
+    <div class="card teal">
+      <ul>
+        <li><strong>public votes that need to stay verifiable</strong> — town meetings, HOA decisions, parent councils, community moderation</li>
+        <li><strong>reputation systems</strong> that shouldn't be locked to one company — contractor reviews, restaurant trust, content authenticity</li>
+        <li><strong>disclosure registries</strong> — lobbying contacts, public-spending dashboards, election counts, regulatory filings</li>
+        <li><strong>accountability tools</strong> in general — anywhere "the org publishing the data" has incentive to bend the numbers, removing that ability is the point</li>
+      </ul>
+    </div>
+    <p>
+      each one is "blame.today but for X." pick the X. the protocol is the same;
+      the surface changes. if blame works, those are the next vehicles.
+    </p>
+
+    <h2>why blame — and not some serious app?</h2>
+    <p>
+      because the surface is silly and the architecture is serious. if you ship
+      this architecture inside an "elections reform" app, you spend three years
+      on regulatory approval and four lawsuits. if you ship it inside
+      <em>"who's getting blamed today,"</em> you spend a weekend and find out
+      whether the pattern works.
+    </p>
+    <p>
+      once it works, the serious applications get built by someone else on the
+      same protocol. that's how patterns earn adoption — not by being
+      <em>announced</em>, but by being <em>demonstrated</em> on something
+      low-stakes nobody minds.
+    </p>
+
+    <div class="card red">
+      <h3>tl;dr</h3>
+      <p>
+        we built an anonymous voting app where you can't trust the company
+        running it — by design. if our numbers are wrong, you can prove it in
+        ten seconds. if we shut down, the data outlives us. it costs $4.19 so
+        far to operate. the architecture is the entire point; blame is the
+        vehicle for showing the architecture works. <a href="/">go vote ↑</a>
+        or <a href="/costs.html">see what we've spent →</a>.
+      </p>
+    </div>
+
+    <footer>
+      <span>blame.today · anonymous · permanent · final</span>
+      <span><a href="/">home</a></span>
+    </footer>
+  </main>
+</body>
+</html>
