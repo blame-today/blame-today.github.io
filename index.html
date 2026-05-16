@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>blame! — the internet's permanent shit list</title>
+  <meta name="description" content="one blame per device per day. no logins. anonymous, permanent. blame anyone or anything." />
+
+  <meta property="og:title" content="blame! — the internet's permanent shit list" />
+  <meta property="og:description" content="one blame per device per day. no logins. anonymous, permanent." />
+  <meta property="og:type" content="website" />
+
+  <style>
+    :root {
+      --yellow: #FFE74C;
+      --red:    #FF3B3B;
+      --teal:   #4ECDC4;
+      --ink:    #000;
+      --paper:  #fff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--yellow);
+      color: var(--ink);
+      font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, var(--ink) 1px, transparent 1.4px);
+      background-size: 6px 6px;
+      opacity: 0.10;
+      pointer-events: none;
+    }
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 36px 24px 80px;
+      position: relative;
+    }
+    h1 {
+      font-family: 'Anton', 'Helvetica Neue', sans-serif;
+      font-weight: 900;
+      font-size: 96px;
+      line-height: 0.9;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      margin: 0 0 8px;
+      color: var(--ink);
+    }
+    h1 .bang { color: var(--red); }
+    .tagline {
+      font-family: 'Anton', sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 22px;
+      color: var(--ink);
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      display: inline-block;
+      padding: 6px 14px;
+      transform: rotate(-1.5deg);
+      margin: 8px 0 20px;
+    }
+    .lede {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      max-width: 540px;
+      margin: 8px 0 28px;
+    }
+    h2 {
+      font-family: 'Anton', sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      font-size: 32px;
+      margin: 36px 0 12px;
+    }
+
+    /* board card */
+    .board-wrap { background: var(--teal); border: 3px solid var(--ink); border-radius: 14px; box-shadow: 5px 5px 0 var(--ink); padding: 16px; margin: 16px 0; position: relative; }
+    .board-header { display: flex; justify-content: space-between; align-items: baseline; font-family: 'Anton', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; font-size: 14px; margin-bottom: 10px; }
+    .board-rows { background: var(--paper); border: 2.5px solid var(--ink); border-radius: 10px; padding: 6px; }
+    .row { display: grid; grid-template-columns: 50px 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; margin: 4px 0; background: var(--paper); border: 2px solid var(--ink); border-radius: 8px; box-shadow: 2px 2px 0 var(--ink); }
+    .row .rank { font-family: 'Anton', sans-serif; font-weight: 900; font-size: 20px; }
+    .row .label { font-family: 'Anton', sans-serif; font-weight: 900; text-transform: uppercase; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row .reason { font-family: 'Space Grotesk', sans-serif; font-size: 10px; font-weight: 700; opacity: 0.55; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1px; }
+    .row .count { font-family: 'Anton', sans-serif; font-weight: 900; font-size: 18px; font-variant-numeric: tabular-nums; }
+
+    .pill {
+      display: inline-block;
+      background: var(--paper);
+      border: 2px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+      font-family: 'Anton', sans-serif;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .arch {
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+    a:hover { color: var(--red); }
+    .small { font-size: 12px; opacity: 0.65; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+    footer { margin-top: 60px; padding-top: 20px; border-top: 3px solid var(--ink); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main>
+    <h1>blame<span class="bang">!</span></h1>
+    <div class="tagline">the internet's permanent shit list</div>
+
+    <div class="lede">
+      one blame per device per day. no logins. anonymous. permanent. blame anyone, anything.
+      see where you rank.
+    </div>
+
+    <h2>today's board</h2>
+    <div class="board-wrap">
+      <div class="board-header">
+        <span id="board-day">loading…</span>
+        <span class="pill">live</span>
+      </div>
+      <div class="board-rows" id="board-rows"><div class="small">loading…</div></div>
+    </div>
+
+    <h2>how this works</h2>
+    <div class="lede">
+      <strong>every vote is a signed nostr event.</strong> our app is just one view of the public ledger.
+      cloudflare is a cache. anyone can audit.
+    </div>
+    <div class="arch">vote flow:
+  iOS client signs vote with a per-device nostr keypair (BIP-340 Schnorr)
+    ├─→ publishes signed event to 7 public nostr relays   (the ledger)
+    └─→ POSTs to cloudflare worker → D1 rollup            (the cache)
+
+read path:
+  this page  →  cloudflare worker → D1 → CDN-cached JSON  (fast)
+  auditors   →  any nostr relay   → recompute from events (true)
+
+if the two ever disagree, the public ledger wins. the cache is opinion;
+the relays are the record.</div>
+
+    <h2>verify the math</h2>
+    <div class="lede">
+      <strong>we don't ask you to trust us.</strong> here's exactly how to recompute today's
+      leaderboard yourself from the public nostr ledger. if your numbers don't match ours,
+      we're lying. call us out.
+    </div>
+    <div class="arch">protocol: <a href="https://github.com/nostr-protocol/nips/blob/master/01.md">nostr NIP-01</a>, kind 30078 (parameterized replaceable)
+
+filter:
+  {"kinds":[30078], "#d":["blame:vote:&lt;YYYY-MM-DD&gt;"]}
+
+relays we publish to:
+  relay.damus.io      nos.lol           relay.nostr.band
+  relay.snort.social  relay.primal.net  offchain.pub
+  nostr.mom
+
+steps:
+  1. connect to any relay above via WebSocket
+  2. send the filter (see /verify?day=&lt;day&gt; for the exact REQ)
+  3. for each EVENT, parse content as JSON → (pubkey, target)
+  4. group by target. unique pubkey count per target = real_count
+  5. compare to /leaderboard?day=&lt;day&gt;
+
+machine-readable: <a id="verify-link" href="#">/verify?day=&lt;today&gt;</a></div>
+
+    <p class="small">
+      <strong>why this matters:</strong> we don't own the data — the protocol does. you don't have to
+      trust the company, the company can't lie undetectably, and if we shut the worker off tomorrow
+      the votes are still there. that's the property we want.
+    </p>
+
+    <h2>running costs</h2>
+    <p>we keep an honest tally of what this costs to run, line by line.
+    <a href="/costs.html">see running costs →</a></p>
+
+    <h2>source</h2>
+    <p><a href="https://github.com/royashbrook/blame">github.com/royashbrook/blame</a></p>
+
+    <h2>install</h2>
+    <p class="small">ios app coming to the app store. testflight beta opens once we've got telemetry on the first thousand voters.</p>
+
+    <footer>
+      anonymous · unverified · final
+    </footer>
+  </main>
+
+  <script>
+    const WORKER_BASE = "https://blame-worker.royashbrook.workers.dev"; // update post-deploy
+    const today = new Date().toISOString().slice(0, 10);
+
+    async function loadBoard() {
+      const rowsEl = document.getElementById('board-rows');
+      const dayEl = document.getElementById('board-day');
+      dayEl.textContent = today;
+      try {
+        const res = await fetch(`${WORKER_BASE}/leaderboard?day=${today}`);
+        if (!res.ok) throw new Error('http ' + res.status);
+        const data = await res.json();
+        if (!data.rows || data.rows.length === 0) {
+          rowsEl.innerHTML = '<div class="small">no votes yet today. be the first.</div>';
+          return;
+        }
+        rowsEl.innerHTML = data.rows.slice(0, 10).map((r, i) => {
+          const total = r.total_count || 0;
+          return `<div class="row">
+            <div class="rank">#${i + 1}</div>
+            <div>
+              <div class="label">${escapeHTML(r.label)}</div>
+              ${r.trending_reason ? `<div class="reason">${escapeHTML(r.trending_reason)}</div>` : ''}
+            </div>
+            <div class="count">${total.toLocaleString()}</div>
+          </div>`;
+        }).join('');
+      } catch (err) {
+        rowsEl.innerHTML = `<div class="small">board unavailable. worker may be cold or not yet deployed. (${err.message})</div>`;
+      }
+    }
+
+    function escapeHTML(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function wireVerifyLink() {
+      const a = document.getElementById('verify-link');
+      if (a) {
+        a.href = `${WORKER_BASE}/verify?day=${today}`;
+        a.textContent = `/verify?day=${today}`;
+      }
+    }
+
+    loadBoard();
+    wireVerifyLink();
+  </script>
+</body>
+</html>
