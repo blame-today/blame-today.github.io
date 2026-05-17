@@ -295,6 +295,135 @@
       </p>
     </div>
 
+    <h2>show your work</h2>
+    <p>
+      the pitch is <em>"you don't have to trust me."</em> that means i owe
+      the actual mechanisms, not just the architecture diagrams. the two
+      places people ask about most: <em>how do you tell devices apart,
+      and how do you turn today's news into seed numbers.</em> here's
+      both — with the abuse vectors i can think of and what i actually
+      think about each.
+    </p>
+
+    <div class="card">
+      <h3>your "device id" — what it really is</h3>
+      <p>
+        when the iOS app first launches, it generates a per-device nostr
+        keypair locally (BIP-340 schnorr, stored in the system keychain).
+        your <strong>public key</strong> is the device id we track. the
+        worker only stores <code>SHA-256(public-key)</code> for the
+        one-vote-per-device-per-day uniqueness check — not the key
+        itself, not your name, not your Apple ID, not your IP.
+      </p>
+      <p>
+        on this marketing site, "you →" in the footer is a similar random
+        identifier that lives in your browser's localStorage. it's
+        nostr-pubkey-shaped (32 hex bytes) but it's not yet a real
+        signing keypair — no signing happens from the web today. it's a
+        slot.
+      </p>
+      <p>
+        <strong>it's not a fingerprint.</strong> we don't derive it from
+        your device's characteristics (canvas hash, GPU, font list, audio
+        stack, screen geometry). it's a random keypair generated locally
+        on first launch. if you want a new id, delete the app and
+        reinstall (with iCloud Keychain disabled), or clear your
+        browser's localStorage for blame.today. you control it. <em>we
+        don't have a way to identify you across resets.</em>
+      </p>
+      <p><strong>abuse vectors i can think of:</strong></p>
+      <ul>
+        <li><strong>reinstall to vote again.</strong> partially mitigated
+        by iCloud Keychain (your keypair survives reinstall if signed
+        into iCloud). without that, yes, reinstall = new identity. is
+        that realistic for a daily blame board? probably not. is it
+        visible? yes — the pattern "this device just appeared, voted for
+        X, never seen before" is on the public ledger.</li>
+        <li><strong>own multiple devices, vote multiple times.</strong>
+        yes. one person with N iPhones gets N votes. this is called
+        "one vote per device per day," not "one vote per person per day."
+        i'm not interested in collecting biometrics or government ID to
+        enforce the latter.</li>
+        <li><strong>sim farm / phone farm.</strong> someone with hundreds
+        of devices could amplify a target. yields hundreds of pubkeys
+        voting in lockstep — extremely visible on the ledger, costs the
+        attacker real money, fails any smell test on inspection.</li>
+        <li><strong>iCloud account switching.</strong> theoretically
+        gives a new keychain entry. practical effort high, payoff low.</li>
+      </ul>
+      <p>
+        <strong>my opinion:</strong> "one vote per device per day" is a
+        good-enough constraint to make the board <em>interesting</em>
+        without imposing the surveillance cost of "one vote per person
+        ever." attackers who try to game it are visible on the public
+        ledger — auditors can detect unnatural patterns and call them
+        out. <strong>i don't try to prevent abuse cryptographically; i
+        surface it socially.</strong> that's the trade.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>seeding — how today's news becomes numbers</h3>
+      <p>
+        the daily board doesn't start empty. each morning at 6am UTC the
+        worker pulls headlines from a fixed set of public sources, asks a
+        small LLM to extract a blameable entity from each, and computes a
+        <code>seeded_count</code> that estimates how much aggregate
+        negative attention each entity is getting. seeded counts are
+        clearly labeled separately from <code>real_count</code> in the
+        API — they're never conflated with actual user votes.
+      </p>
+      <p><strong>the sources, with their attention weights per mention:</strong></p>
+      <ul>
+        <li>yahoo news RSS — 200,000 (high; direct mainstream publisher)</li>
+        <li>google news RSS — 50,000 (aggregator; many publishers deduped)</li>
+        <li>reddit /r/news, /r/worldnews — 30,000 each</li>
+        <li>reddit /r/politics — 25,000</li>
+        <li>reddit /r/technology — 20,000</li>
+        <li>wikipedia top pageviews (yesterday, en) — weight = actual pageview count, sqrt-compressed above 1M</li>
+      </ul>
+      <p><strong>the model and the formula:</strong></p>
+      <ul>
+        <li>LLM: <code>@cf/meta/llama-3.1-8b-instruct</code> on cloudflare Workers AI</li>
+        <li>per headline → <code>{ target, label, negativity }</code> with negativity ∈ [0, 3]</li>
+        <li>aggregate per canonical id: <code>attention = Σ source_weight</code>, <code>avg_negativity = Σ neg / mentions</code></li>
+        <li><code>seeded_count = round(0.001 × effective_attention × avg_negativity)</code>, where effective_attention is sqrt-compressed above 1M to keep one outlier from dominating</li>
+        <li>daily decay: existing trending × 0.85 each refresh, today's contributions added on top, anything below 5 pruned. ~30-day fade for a one-time mention.</li>
+        <li>leaderboard ranking uses bayesian shrinkage so each seeded vote counts as ≈ 1/10 of a real vote, fading further as real votes pile up</li>
+      </ul>
+      <p><strong>abuse vectors i can think of:</strong></p>
+      <ul>
+        <li><strong>i could manipulate seeding to bias the board.</strong>
+        technically yes. defense: the whole pipeline is deterministic
+        from public inputs. you can run the same RSS feeds, the same
+        model, the same code, and get the same numbers. when the main
+        repo goes public near launch, the code is auditable. weight /
+        source / model / formula changes are git-visible.</li>
+        <li><strong>the LLM has biases.</strong> yes, llama-3.1-8b has
+        biases — every model does. the model identifier is public;
+        you can run the same headlines through a different model and
+        compare. multi-model consensus is on the roadmap.</li>
+        <li><strong>the news sources have biases.</strong> obviously.
+        the weight calibration is open. you can disagree with the
+        weights — they're literally numbers in a config. recompute with
+        your weights and see how the board shifts.</li>
+        <li><strong>i could quietly swap the formula.</strong> sure, but
+        the deployed worker code is reproducible from the repo, and
+        changes show up in git history. if the displayed seeded counts
+        diverge from what the formula in the repo produces on the same
+        inputs, something is wrong and it's detectable.</li>
+      </ul>
+      <p>
+        <strong>my opinion:</strong> seeded counts are an editorial
+        choice presented <em>as</em> an editorial choice. they're labeled
+        separately so a real vote count of 1 isn't conflated with a
+        seeded count of 1,000. the iOS app's tap-row context view shows
+        the actual headlines that drove an entity into the seeds —
+        nothing is laundered. the seeds exist because an empty leaderboard
+        is boring, not because i want to nudge anyone's votes.
+      </p>
+    </div>
+
     <h2>where else this pattern fits</h2>
     <p>
       the cargo we're carrying is: <em>cache is opinion, protocol is record.</em>
