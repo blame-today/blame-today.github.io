@@ -368,6 +368,161 @@
       </p>
     </div>
 
+    <h2>the platforms we picked, and why</h2>
+    <p>
+      every architectural choice has alternatives. the ones blame.today
+      runs on weren't obvious. here's the reasoning behind each.
+    </p>
+
+    <div class="card">
+      <h3>ledger: nostr (vs blockchain, AT protocol, ActivityPub)</h3>
+      <p>
+        <strong>what we needed:</strong> a way to publish signed events
+        to multiple independent public servers, no fees, no governance,
+        no tokens. just <em>"post a message; anyone can verify it came
+        from this keypair."</em>
+      </p>
+      <p><strong>what we considered:</strong></p>
+      <ul>
+        <li><strong>bitcoin / OP_RETURN</strong> — paid per transaction
+        (~$1+), slow (10-minute blocks), tiny payload (80 bytes). built
+        for money, not messages.</li>
+        <li><strong>ethereum log events</strong> — paid per transaction
+        (gas fees, often $5+), faster, bigger payload. one vote should
+        not cost $5.</li>
+        <li><strong>AT protocol (the protocol behind bluesky)</strong>
+        — more complex (DIDs, personal data servers, full social graph).
+        designed to power an entire social network. overkill for
+        "signed events on a board." worth noting because people often
+        ask: <em>nostr and bluesky are not related</em> — they're
+        parallel open protocols with similar decentralization goals
+        but completely different architectures.</li>
+        <li><strong>ActivityPub (mastodon's protocol)</strong> —
+        server-based identities; you need to trust the server hosting
+        your account. doesn't have nostr's "your keypair is your
+        identity" property.</li>
+        <li><strong>roll our own protocol</strong> — we'd have to run
+        the relays. defeats the entire "ledger we don't run" point.</li>
+      </ul>
+      <p><strong>why nostr fits:</strong></p>
+      <ul>
+        <li><strong>cost: free.</strong> public relays run by volunteers
+        and organizations (damus, primal, snort, nostr.band, etc.)</li>
+        <li><strong>speed: real-time.</strong> websocket pub/sub.
+        milliseconds, not minutes.</li>
+        <li><strong>simplicity:</strong> events are
+        <code>{kind, content, tags, pubkey, signature}</code>. that's
+        the entire spec.</li>
+        <li><strong>no tokens, no fees, no governance.</strong> nothing
+        to vote on, no economic complexity.</li>
+        <li><strong>identity = keypair.</strong> same property as
+        bitcoin/PGP/signal, without monetary stakes.</li>
+        <li><strong>multi-relay redundancy.</strong> publish to N
+        independent relays, any one can serve the event.</li>
+      </ul>
+      <p>
+        nostr is the minimum viable protocol for what we need:
+        signed events, public, redundant, free. anything more would
+        be carrying weight we don't use.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>compute + storage: cloudflare workers + D1</h3>
+      <p>
+        <strong>what we needed:</strong> edge compute that runs our
+        worker globally with near-zero cold start, integrated with
+        cheap storage, free tier generous enough to launch on $0.
+      </p>
+      <p><strong>what we considered:</strong></p>
+      <ul>
+        <li><strong>AWS Lambda + DynamoDB / RDS</strong> — most
+        powerful, also most operational complexity, slower cold start
+        (100ms+), costs add up faster outside generous-but-finite free
+        tier.</li>
+        <li><strong>vercel / netlify functions</strong> — optimized
+        for next.js / web stacks. less ideal for arbitrary worker code
+        + integrated SQL storage.</li>
+        <li><strong>fly.io / render / railway</strong> — containers
+        (slower cold start), more setup overhead, different
+        operational model.</li>
+        <li><strong>GCP cloud run + cloud sql</strong> — fine but more
+        provider lock-in for less generous free tier.</li>
+      </ul>
+      <p><strong>why cloudflare workers fits:</strong></p>
+      <ul>
+        <li><strong>~0ms cold start</strong> (V8 isolates, not VMs)</li>
+        <li><strong>free tier: 100k requests/day</strong> on workers,
+        5M reads/day on D1</li>
+        <li><strong>global edge: 250+ datacenters</strong> — the
+        worker runs close to every user</li>
+        <li><strong>DDoS absorption included free</strong> — CF anycast
+        handles volumetric attacks</li>
+        <li><strong>workers AI free tier</strong> for LLM inference
+        (10k neurons/day; we currently use ~7k)</li>
+        <li><strong>one-provider auth</strong> — single config, single
+        bill (or no bill, in our case)</li>
+      </ul>
+      <p>
+        the whole stack — worker + D1 + Workers AI + Pages — is one
+        provider's free tier. that's the architectural choice that
+        makes "<a href="/costs.html">$4.19 to launch</a>" possible.
+        not "scaled aggressively" — just "doesn't cost anything yet."
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>inference: cloudflare workers AI (initially)</h3>
+      <p>
+        <strong>what we needed:</strong> LLM inference for entity
+        extraction (news → blameable target) on a free-ish budget,
+        running inside the same worker code path.
+      </p>
+      <p><strong>what we considered:</strong></p>
+      <ul>
+        <li><strong>OpenAI / anthropic claude API</strong> — best
+        models, pay-per-token. great for serious work, doesn't fit
+        the $0/mo goal at any meaningful seeding volume.</li>
+        <li><strong>local on-device LLMs (iOS CoreML)</strong> — too
+        compute-heavy for daily seeding; doesn't fit the cron-driven
+        worker pattern.</li>
+        <li><strong>hugging face inference API</strong> — free tier
+        exists but rate-limited.</li>
+        <li><strong>together / replicate / anyscale</strong> —
+        multi-provider routing under one API. useful future option
+        (see council-of-models below) but not yet.</li>
+      </ul>
+      <p><strong>why workers AI fits today:</strong></p>
+      <ul>
+        <li><strong>free tier: 10k neurons/day</strong> — current
+        seeding burns ~7k, leaves room for council expansion</li>
+        <li><strong>models available:</strong> llama-3.1-8b,
+        mistral-7b, gemma-7b, qwen-2.5 — good enough for entity
+        extraction</li>
+        <li><strong>same provider as the worker</strong> — single
+        auth, single binding, zero network overhead between worker
+        and inference</li>
+      </ul>
+      <p>
+        at scale we'll fan out across multiple providers'
+        free tiers via the council pattern (openrouter as aggregator),
+        but cloudflare's free tier alone gets us through launch and
+        a meaningful amount of growth.
+      </p>
+    </div>
+
+    <p>
+      <strong>the principle running through all three:</strong>
+      pick the simplest open thing that exactly fits the need. nostr
+      over blockchain because blockchain is paid + slow; cloudflare
+      over AWS because cloudflare is faster + free at our scale;
+      workers AI over premium APIs because we don't need premium for
+      entity extraction. nothing here is permanent — the architecture
+      is designed to spread across providers as the system grows,
+      because that's the actual long-term resilience story. but the
+      starting platforms were chosen by elimination, not by ideology.
+    </p>
+
     <h2>show your work</h2>
     <p>
       the pitch is <em>"you don't have to trust me."</em> that means i owe
