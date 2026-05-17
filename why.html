@@ -736,6 +736,93 @@
       someone's home address is on seven relays for the next decade.
     </p>
 
+    <h2>the flow, in retrospect</h2>
+    <p>
+      the user flow has the same shape as the architecture — i didn't
+      design it on purpose, it found its current shape as i made
+      decisions about what should be meaningful. three turns:
+    </p>
+
+    <div class="card">
+      <h3>1 · originally: infinite-click ledger</h3>
+      <p>
+        first version was an open ledger. tap whatever, tap as often as
+        you want, no limit, no friction. just contribute to a stream.
+        sounds reasonable, until you think for two seconds: <em>if every
+        vote costs nothing, every vote means nothing.</em> the
+        leaderboard becomes "whoever has the most patience for tapping."
+        that's not a signal, that's an endurance test.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>2 · then: one vote per device per day</h3>
+      <p>
+        next version: one tap. one device. one day. that's it. now your
+        vote is scarce — you only get one, you have to spend it on
+        something, and once you do you're locked out until tomorrow.
+        scarcity does the work that infinite-tap couldn't:
+        <strong>scarcity makes a vote weigh something.</strong>
+      </p>
+      <p>
+        as a side effect, this also fixed the "endurance leaderboard"
+        problem. the board now reflects what a representative slice of
+        device-holders chose to spend their one daily vote on. that's
+        a meaningfully different signal.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>3 · then: gate the board behind voting</h3>
+      <p>
+        latest turn: you have to vote (or actively choose not to) to see
+        the full ranking. on the home page, the leaderboard is hidden
+        behind a tap. tap the gate, the board reveals.
+      </p>
+      <p>
+        this is a deliberate call-to-action. <em>blame.today is
+        participatory.</em> if you scroll, scroll, scroll without
+        engaging, the page is telling you something — there's a
+        threshold to cross. you can cross it casually (the gate tap
+        isn't a real vote, just a confirmation that you're here on
+        purpose) or you can skip it entirely (the data's on the public
+        ledger, here's how to recompute). both paths are explicit.
+      </p>
+      <p class="small">
+        important honest note: <em>even with no users, this was the
+        idea.</em> a call-to-action with no traffic to act on it is
+        still a call-to-action — it just isn't seen by anyone yet. the
+        gate is designed for the day people show up, and it's fine if
+        that day never comes. the framing matters whether the audience
+        does or doesn't.
+      </p>
+    </div>
+
+    <div class="card teal">
+      <h3>+ the sampler: a teaser before the gate</h3>
+      <p>
+        the home page also shows three random board entries above the
+        gate — picked deterministically from your <em>visitor key + today's
+        date.</em> same picks for you on every visit today; different picks
+        for everyone else; new picks tomorrow.
+      </p>
+      <p>
+        this isn't the ranking. it's a taste. the goal is to convey "this
+        is alive and there's something for you here" without revealing
+        the rank — and to use the visitor key meaningfully, not just
+        decoratively. you have an identity at blame.today the moment you
+        arrive; the sampler is the first thing that identity does for you.
+      </p>
+      <p class="small">
+        seed is <code>SHA256-shaped(visitor_key + ':' + today)</code>; pool
+        is top 100 entries; pick is the first 3 of the seeded shuffle. all
+        client-side javascript — the worker just returns the leaderboard,
+        the deterministic personalization happens in your browser. no
+        per-visitor tracking on the server side. anyone can recompute their
+        own sample given just their visitor key + the day.
+      </p>
+    </div>
+
     <h2>where else this pattern fits</h2>
     <p>
       the cargo we're carrying is: <em>cache is opinion, protocol is record.</em>
