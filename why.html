@@ -477,6 +477,77 @@
     </div>
 
     <div class="card">
+      <h3>what an attacker can and can't do (the crypto part)</h3>
+      <p>
+        a careful reader will ask: <em>if all your traffic to the nostr
+        relays is public, can't someone watch the traffic and learn
+        enough to forge votes?</em> answer: no — but it's worth saying
+        exactly why, since "all the data is public" sounds scarier than
+        it is.
+      </p>
+      <p>
+        the entire protocol rests on <strong>public-key cryptography.</strong>
+        the iOS app generates a BIP-340 schnorr keypair on first launch.
+        the <em>private key</em> stays in the iOS keychain, encrypted,
+        never leaves your device. the <em>public key</em> is part of
+        every event you publish — anyone can see it. signing uses the
+        private key; verification uses the public key.
+      </p>
+      <p>
+        the math property doing the work: <strong>given a public key
+        and any number of signatures, you cannot derive the private
+        key.</strong> not by inspecting traffic, not by computing, not
+        by brute force. this is the same property that makes bitcoin,
+        signal, PGP-signed git commits, and TLS work. publishing the
+        public key compromises nothing — that's the entire point of
+        asymmetric crypto. the secret isn't in transit. it's on the
+        device.
+      </p>
+      <p><strong>what an attacker watching our traffic to relays can do:</strong></p>
+      <ul>
+        <li><strong>replay a signed event they've already seen</strong>
+        — nostr relays dedupe by event id. doesn't add a vote.</li>
+        <li><strong>publish their own events with their own keypair</strong>
+        — that's just normal voting. they get one vote per their key
+        per day, same as everyone else. encouraged, even.</li>
+        <li><strong>modify an event in transit</strong> — modification
+        breaks the signature, relays reject the event.</li>
+        <li><strong>derive a private key from observed signatures</strong>
+        — 256-bit elliptic curve discrete log problem. computationally
+        infeasible (heat-death-of-the-sun timescales with current
+        hardware, and quantum-resistant variants exist if that ever
+        changes).</li>
+      </ul>
+      <p><strong>what an attacker can do (and we can't fully prevent):</strong></p>
+      <ul>
+        <li><strong>compromise a user's device and extract the keychain</strong>
+        — any keypair-based system has this property. impact: forge that
+        one user's vote. requires real attacker effort. bounded to that
+        one device.</li>
+        <li><strong>get a user to voluntarily share their private key</strong>
+        — user's choice. bounded to that device.</li>
+        <li><strong>run a "sim farm" of physical or virtual devices</strong>
+        — each device gets its own keypair, votes once per day. costs
+        the attacker real money. also <em>visible on the public ledger
+        as a cluster of fresh pubkeys voting in lockstep</em> — exactly
+        the pattern that the news-zeitgeist seeding acts as a structural
+        counterweight against (see
+        <a href="#moderation">moderation, in retrospect ↓</a>).</li>
+      </ul>
+      <p>
+        <strong>my opinion:</strong> the threat model here is the same
+        as every keypair-based system you already trust. the secrets
+        aren't in transit; they're on the user's device. publishing
+        public keys is not a leak — it's the design. the most realistic
+        attack against blame.today specifically is a coordinated sim
+        farm, and the architecture surfaces that pattern publicly
+        instead of hiding it. <strong>we can't stop someone with a
+        warehouse of phones, but we can guarantee everyone else can
+        see what they're doing.</strong>
+      </p>
+    </div>
+
+    <div class="card">
       <h3>seeding — how today's news becomes numbers</h3>
       <p>
         the daily board doesn't start empty. each morning at 6am UTC the
