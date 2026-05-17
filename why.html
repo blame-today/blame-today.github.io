@@ -456,12 +456,9 @@
       </p>
       <p>
         which means: <em>if you type private info into the target
-        field, that private info goes on the public ledger in
-        plaintext.</em> no encryption, no hashing. if you blame
-        "555-867-5309 home address" or "&lt;real name&gt; at &lt;real
-        address&gt;," that string is published to relays we have no
-        control over. <strong>this is the real attack surface and i
-        take it seriously.</strong>
+        field and it slips past our filters, that private info goes
+        on the public ledger in plaintext.</em> no encryption, no
+        hashing.
       </p>
       <p>
         <strong>why not just hash the target?</strong> because the
@@ -470,51 +467,12 @@
         we hash, we'd have to keep the plaintext mapping ourselves —
         which makes us the trusted authority and breaks the
         cache-vs-record property. auditors recomputing from raw events
-        need to see plaintext too, or they can't recompute. <em>the
-        architecture requires plaintext on the chain.</em> the only
-        viable defense is at the input boundary, before the vote is
-        ever signed.
-      </p>
-      <p><strong>what's in place today:</strong></p>
-      <ul>
-        <li><strong>length + word limits.</strong> targets are short.
-        addresses don't fit. full-name-plus-phone strings don't fit.
-        most accidental PII gets blocked by this alone.</li>
-        <li><strong>client-side regex blocks</strong> for obvious shapes:
-        phone numbers (<code>\d{3}[-.\s]?\d{3}[-.\s]?\d{4}</code>),
-        emails (anything containing <code>@</code> with a domain),
-        SSN patterns (<code>\d{3}-\d{2}-\d{4}</code>), and URLs.
-        vote rejected before signing.</li>
-        <li><strong>autocomplete bias.</strong> the trending list (news
-        + wikipedia seeds) is the path of least resistance — most
-        users tap a suggestion rather than typing a freeform target.</li>
-      </ul>
-      <p><strong>what's coming before app store launch:</strong></p>
-      <ul>
-        <li><strong>server-side LLM PII check.</strong> before the
-        worker accepts a vote (and before any nostr publication), a
-        small model runs a "does this look like a private individual or
-        contain PII?" check. rejected with a clear message if so. same
-        council pattern as seeding — multiple small models, consensus
-        rejection beats any single model's blind spots.</li>
-        <li><strong>private-individual heuristic.</strong> public
-        figures (anyone with a wikipedia page, anyone trending in
-        today's news) are explicitly allowed. unknown human-shaped
-        names ("first-last") that match neither get rejected as
-        potentially private. errs toward "blame abstractions and
-        public figures, not unknown individuals."</li>
-      </ul>
-      <p>
-        <strong>my opinion:</strong> the architecture is right
-        <em>(cache is opinion, protocol is record)</em> but it puts
-        the entire responsibility for PII prevention on the input
-        layer. that layer needs to be robust before any meaningful
-        traffic arrives, because once a target is on the ledger it's
-        there. <strong>treating this as a real problem instead of an
-        edge case is part of why launch isn't tomorrow.</strong> if
-        you spot a way to slip PII past the filters, tell me — i'd
-        rather hear it from a friendly tester than discover it after
-        someone's home address is on seven relays for the next decade.
+        need to see plaintext too, or they can't recompute.
+        <strong>the architecture requires plaintext on the chain.</strong>
+        the only viable defense is at the input boundary, before the
+        vote is ever signed — which is a substantial topic of its own,
+        treated separately in
+        <a href="#moderation">moderation, in retrospect ↓</a>.
       </p>
     </div>
 
@@ -613,6 +571,159 @@
         spam, not because i want to nudge anyone's votes.
       </p>
     </div>
+
+    <h2 id="moderation">moderation, in retrospect</h2>
+    <p>
+      this section is about a problem that wasn't on my radar at the
+      start. for any reader who thought about it earlier than i did:
+      yeah, you saw this coming. i didn't, for a while. then i did.
+      here's the arc — partly so i don't get to pretend it was always
+      part of the plan.
+    </p>
+
+    <div class="card">
+      <h3>the original vision: zero moderation</h3>
+      <p>
+        initially i was going to ship it open. one vote per device per
+        day, anonymous, signed, public. <em>who's it hurting?</em> this
+        is, in retrospect, the kind of sentence you only get to say
+        before you actually try to launch the thing.
+      </p>
+      <p>
+        if every user was using it as intended — one blame per day on
+        an abstraction or a public figure, no PII — there'd be no
+        problem. the worst-case input ("john smith at 123 main street")
+        would land in millionth place behind <em>war, ai, the
+        algorithm, mondays</em> and the daily news villains. it'd
+        never surface. the leaderboard would be exactly the data
+        the app is supposed to surface.
+      </p>
+      <p>
+        but reality has a small fraction of users who'll type their
+        ex's address, paste a phone number, or attempt to dox someone
+        for fun. once that string is signed and published to seven
+        nostr relays we don't run, <strong>it's there forever.</strong>
+        we can't unpublish from a public protocol. that's the entire
+        point of the architecture, and it cuts both ways.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>two things had to change</h3>
+      <p>
+        once i thought about actually shipping, two parts of the
+        original plan had to evolve.
+      </p>
+      <p><strong>1. seeding became more important than i thought.</strong></p>
+      <p>
+        originally the news-seeding was just "fill an empty leaderboard
+        so the first user has something to tap." in retrospect it's
+        doing real structural work: <em>the news signal is louder
+        than any single user-typed target.</em> a name nowhere in
+        today's news and only voted on by a few users sinks to the
+        bottom; a name everywhere in the news rises. seeded counts
+        aren't decoration — they're the structural defense against
+        vote-clustering on private targets.
+      </p>
+      <p>
+        this is also why i'm planning to extend the seed sources.
+        today: news + wikipedia pageviews. next on the list:
+        <strong>kalshi, polymarket</strong> and other prediction-market
+        trending feeds — topics people are betting <em>real money</em>
+        on are almost definitionally the hottest topics. then maybe
+        reddit upvote velocity on a curated set of subs. each
+        additional public source makes the zeitgeist signal louder
+        relative to any single user-typed name, and the louder that
+        signal is, the more structurally safe the leaderboard is.
+      </p>
+      <p><strong>2. moderation had to become automatic.</strong></p>
+      <p>
+        i'm one person. i can't review every vote, and i can't be
+        awake every hour. so moderation has to:
+      </p>
+      <ul>
+        <li>run in the worker <em>before</em> the vote is signed and
+        published — once it's on the relays, no take-backs</li>
+        <li>be cheap enough to not burn the daily inference budget</li>
+        <li>be deterministic enough to be reproducible from the same
+        code — same input, same decision</li>
+        <li><strong>fail closed under uncertainty.</strong> when in
+        doubt, reject. the cost of a false positive (we rejected a
+        legit vote) is recoverable — the user retries. the cost of a
+        false negative (we let PII through) is forever.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>what's running now, what's coming before launch</h3>
+      <p><strong>today, at the input layer:</strong></p>
+      <ul>
+        <li><strong>length + word limits.</strong> targets are short.
+        most accidental PII can't physically fit in the field.</li>
+        <li><strong>regex blocks</strong> for phone numbers
+        (<code>\d{3}[-.\s]?\d{3}[-.\s]?\d{4}</code>), emails
+        (anything with <code>@</code> and a TLD), SSN patterns
+        (<code>\d{3}-\d{2}-\d{4}</code>), URL shapes. vote rejected
+        before signing.</li>
+        <li><strong>autocomplete bias.</strong> the trending list
+        (news + wikipedia seeds) is the path of least resistance —
+        most users tap a suggestion and never type a freeform target.</li>
+      </ul>
+      <p><strong>before app store submission:</strong></p>
+      <ul>
+        <li><strong>LLM PII check at the worker</strong>, using the
+        same council pattern as seeding. multiple small models, vote
+        rejected if any council member flags PII or the consensus is
+        uncertain. fail-closed by design.</li>
+        <li><strong>public-figure heuristic.</strong> targets that
+        match a wikipedia page or appear in today's news are
+        explicitly allowed. unknown "first-last" name shapes that
+        match neither get rejected as potentially private. errs toward
+        <em>"blame abstractions and public figures, not unknown
+        individuals."</em></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>where the moderation lives (and doesn't)</h3>
+      <p>
+        important honest note: moderation lives at the
+        <strong>acceptance boundary</strong>, before signing. it does
+        NOT live at the <strong>retrieval boundary</strong>, after
+        publication. a user running their own nostr client can
+        technically publish any string they want to the relays —
+        they don't need our worker. our worker is the cache; the
+        relays are the record; the input filter is at the cache.
+      </p>
+      <p>
+        what that means for the leaderboard: <strong>our leaderboard
+        reflects votes that passed our moderation.</strong> auditors
+        recomputing from the raw relay feed will see <em>everything</em>
+        published — including stuff our filter rejected if anyone
+        bypassed our worker. that's a feature, not a bug: independent
+        observers can see what we filtered out and disagree with us
+        about it. our filter is auditable in both directions.
+      </p>
+    </div>
+
+    <p>
+      <strong>my opinion:</strong> i underestimated this at the start.
+      "zero moderation, fully open" is a sentence you can say before
+      you actually try to ship the thing. once you're staring at a
+      real input box that a real user can type a real address into,
+      the responsibility lands. the architecture is right —
+      <em>cache is opinion, protocol is record</em> — but it puts the
+      entire moderation burden on the input layer, because once a
+      string is on the relays we can't pull it back. so the input
+      layer has to be robust before any traffic of any size arrives.
+      <strong>treating this as the real problem it is (instead of an
+      edge case) is one of the main reasons launch isn't tomorrow.</strong>
+    </p>
+    <p>
+      if you find a way to slip PII past the filters: <strong>tell me.</strong>
+      i'd rather hear it from a friendly tester than discover it after
+      someone's home address is on seven relays for the next decade.
+    </p>
 
     <h2>where else this pattern fits</h2>
     <p>
