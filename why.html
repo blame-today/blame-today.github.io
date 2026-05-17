@@ -826,6 +826,31 @@
         treated separately in
         <a href="#moderation">moderation, in retrospect ↓</a>.
       </p>
+      <p>
+        <strong>size discipline.</strong> there's also a daily signed
+        seed manifest the worker publishes — one event per day containing
+        the seeded-portion of the leaderboard so iOS clients can read
+        directly from nostr if the worker is unreachable. that event is
+        bounded:
+      </p>
+      <ul>
+        <li><strong>~14KB at 250 entries</strong> in current production
+        (no headlines in the manifest; just target_id + label +
+        trending_reason + seeded_count, in a compact positional format)</li>
+        <li><strong>soft cap: 32KB.</strong> worker logs a warning if
+        exceeded — most relays accept up to 64-128KB but a few have
+        stricter limits</li>
+        <li><strong>hard cap: 64KB.</strong> worker refuses to publish
+        beyond this, with a clear error. forces us to fix the source
+        (e.g. trim trending_reason strings) rather than ship a manifest
+        the relays will silently reject</li>
+      </ul>
+      <p class="small">
+        deliberately not gzipping content: nostr relays that support
+        WebSocket permessage-deflate compress on the wire automatically;
+        pre-gzipping doubles work + obscures the data when reading raw
+        events. cheaper to keep the content honest and shape it small.
+      </p>
     </div>
 
     <div class="card">
