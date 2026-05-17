@@ -360,6 +360,15 @@
         out. <strong>i don't try to prevent abuse cryptographically; i
         surface it socially.</strong> that's the trade.
       </p>
+      <p>
+        there's also a hedge most people miss: the seeded counts from
+        the news zeitgeist (next card) act as a baseline of "what's
+        actually being talked about right now." if 1000 sock-puppet
+        votes pile onto some obscure target that's nowhere in today's
+        news, the discrepancy is <em>visible by contrast.</em> the
+        seeding isn't just for the empty-leaderboard problem — it's
+        also a real-time sanity check on the user-vote distribution.
+      </p>
     </div>
 
     <div class="card">
@@ -391,18 +400,51 @@
         <li>daily decay: existing trending × 0.85 each refresh, today's contributions added on top, anything below 5 pruned. ~30-day fade for a one-time mention.</li>
         <li>leaderboard ranking uses bayesian shrinkage so each seeded vote counts as ≈ 1/10 of a real vote, fading further as real votes pile up</li>
       </ul>
+      <p><strong>where this is heading: a council of models.</strong></p>
+      <p>
+        running everything through one llm has two problems beyond bias:
+        every model is <em>one company's opinion of "blameable entity,"</em>
+        and any one free tier runs out of tokens fast. cloudflare workers
+        ai is ~10k neurons/day; we currently use ~7k just for the daily
+        refresh. that leaves no room for retries, no buffer for richer
+        prompts, no headroom to scale headlines.
+      </p>
+      <p>
+        the plan is to fan the same headlines out to several small models
+        in parallel — gemini-flash, llama-3.1-8b, mistral-small,
+        qwen-2.5-7b, deepseek-chat — and take consensus on each entity.
+        divergent picks get dropped or flagged as low-confidence. that
+        does three things at once: hedges any single model's bias,
+        produces safer cleaner word clouds when models agree, and spreads
+        the load across multiple providers' free tiers. <strong>same
+        "stack free tiers" pattern as the rest of the architecture,
+        applied to inference.</strong>
+      </p>
+      <p>
+        llm-aggregator services make this nearly trivial to wire up —
+        <strong>openrouter</strong> is the obvious one (one api,
+        100+ models, fan-out is a config change), with <strong>together,
+        groq, anyscale</strong> all offering similar multi-model
+        routing. some have free tiers; even paid is $0.10–$0.50 per
+        million tokens for small models, which is rounding error in the
+        running-costs ledger. the architectural property doesn't change —
+        cache is opinion, protocol is record — but the cache gets
+        smarter and more durable.
+      </p>
+
       <p><strong>abuse vectors i can think of:</strong></p>
       <ul>
         <li><strong>i could manipulate seeding to bias the board.</strong>
         technically yes. defense: the whole pipeline is deterministic
         from public inputs. you can run the same RSS feeds, the same
-        model, the same code, and get the same numbers. when the main
+        model(s), the same code, and get the same numbers. when the main
         repo goes public near launch, the code is auditable. weight /
         source / model / formula changes are git-visible.</li>
-        <li><strong>the LLM has biases.</strong> yes, llama-3.1-8b has
-        biases — every model does. the model identifier is public;
-        you can run the same headlines through a different model and
-        compare. multi-model consensus is on the roadmap.</li>
+        <li><strong>any single LLM has biases.</strong> yes, every model
+        does. defense today: model id is public, you can run the same
+        headlines through a different model and compare. defense in
+        progress: the council pattern above turns this into a strength
+        — divergence across models is the bias signal itself.</li>
         <li><strong>the news sources have biases.</strong> obviously.
         the weight calibration is open. you can disagree with the
         weights — they're literally numbers in a config. recompute with
@@ -420,7 +462,8 @@
         seeded count of 1,000. the iOS app's tap-row context view shows
         the actual headlines that drove an entity into the seeds —
         nothing is laundered. the seeds exist because an empty leaderboard
-        is boring, not because i want to nudge anyone's votes.
+        is boring and because the zeitgeist baseline catches sock-puppet
+        spam, not because i want to nudge anyone's votes.
       </p>
     </div>
 
