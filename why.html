@@ -951,7 +951,7 @@
         <li>aggregate per canonical id: <code>attention = Σ source_weight</code>, <code>avg_negativity = Σ neg / mentions</code></li>
         <li><code>seeded_count = round(0.001 × effective_attention × avg_negativity)</code>, where effective_attention is sqrt-compressed above 1M to keep one outlier from dominating</li>
         <li>daily decay: existing trending × 0.85 each refresh, today's contributions added on top, anything below 5 pruned. ~30-day fade for a one-time mention.</li>
-        <li>leaderboard ranking uses bayesian shrinkage so each seeded vote counts as ≈ 1/100 of a real vote, fading further as real votes pile up (initial α=0.1 made first-time voters land at the bottom of the board — lowered to 0.01 so real votes climb visibly while top news entries still hold their place by sheer seed magnitude)</li>
+        <li>leaderboard sort key = raw total (seeded + real). the number on the row IS the rank — no hidden weighting. tie-breakers: more real votes wins (user signal beats seed), then stable on target id. entities need ≥ 3 total votes to appear on the public board so solo write-ins don't pollute the list; the voter themselves always sees their own vote reflected via client-side rank synthesis. earlier versions used bayesian shrinkage to suppress fresh 1-vote spam, but the displayed-number-vs-sort-key divergence (row showing 741 ranking like 840) was worse than the noise it tried to fix — the ≥ 3 floor handles the spam case more transparently.</li>
       </ul>
       <p>
         <strong>generic-noun filter at extraction.</strong> the LLM
