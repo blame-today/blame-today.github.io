@@ -110,6 +110,80 @@
     a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
     a:hover { color: var(--red); }
     .small { font-size: 12px; opacity: 0.65; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    /* in-page nav — grouped TOC + floating back-to-top */
+    .toc {
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin: 24px 0 28px;
+    }
+    .toc-label {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 13px;
+      opacity: 0.7;
+      margin-bottom: 10px;
+    }
+    .toc-groups {
+      display: grid;
+      gap: 14px;
+    }
+    @media (min-width: 700px) {
+      .toc-groups { grid-template-columns: repeat(4, 1fr); }
+    }
+    .toc-group-label {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 13px;
+      color: var(--red);
+      margin-bottom: 4px;
+    }
+    .toc-group a {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      padding: 2px 0;
+      text-decoration: none;
+      border-bottom: 1px dashed transparent;
+    }
+    .toc-group a:hover {
+      border-bottom-color: var(--red);
+      color: var(--red);
+    }
+
+    .back-to-top {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      width: 44px;
+      height: 44px;
+      background: var(--red);
+      color: var(--paper);
+      border: 3px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      border-radius: 50%;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: 22px;
+      line-height: 38px;
+      text-align: center;
+      text-decoration: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.05s ease;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .back-to-top.visible { opacity: 0.95; pointer-events: auto; }
+    .back-to-top:hover { background: var(--ink); color: var(--paper); }
+    .back-to-top:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
     strong { font-weight: 700; }
     em { font-style: italic; font-weight: 600; }
     .pullquote {
@@ -136,7 +210,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-  <main>
+  <main id="top">
     <p class="small"><a href="/">← back</a></p>
     <h1>why this matters</h1>
     <div class="tagline">a silly idea that grew architecture</div>
@@ -198,7 +272,38 @@
 
     <div class="pullquote">cache is opinion.<br/>protocol is record.</div>
 
-    <h2>what's the goal?</h2>
+    <nav class="toc" aria-label="in this page">
+      <div class="toc-label">in this page →</div>
+      <div class="toc-groups">
+        <div class="toc-group">
+          <div class="toc-group-label">the pitch</div>
+          <a href="#goal">the goal</a>
+          <a href="#what-this-isnt">what this isn't</a>
+          <a href="#buys-you">what it buys you</a>
+        </div>
+        <div class="toc-group">
+          <div class="toc-group-label">the property</div>
+          <a href="#stress">stress-tests</a>
+          <a href="#permanent">what "permanent" means</a>
+          <a href="#platforms">platforms we picked</a>
+        </div>
+        <div class="toc-group">
+          <div class="toc-group-label">the mechanism</div>
+          <a href="#show-your-work">show your work</a>
+          <a href="#moderation">moderation</a>
+          <a href="#flow">the flow</a>
+        </div>
+        <div class="toc-group">
+          <div class="toc-group-label">the story</div>
+          <a href="#pattern">where else this fits</a>
+          <a href="#order">the order it happened</a>
+          <a href="#why-now">why now</a>
+          <a href="#tldr">tl;dr</a>
+        </div>
+      </div>
+    </nav>
+
+    <h2 id="goal">what's the goal?</h2>
     <p>
       the goal has three layers, and they showed up in this order:
     </p>
@@ -237,7 +342,7 @@
       </p>
     </div>
 
-    <h2>what this isn't</h2>
+    <h2 id="what-this-isnt">what this isn't</h2>
     <p>
       before any of the "look at this architecture" stuff, calibration.
       just to be clear about what i'm <em>not</em> claiming:
@@ -276,7 +381,7 @@
       keep paying the $4.19 once a year. =P
     </p>
 
-    <h2>what the architecture buys you</h2>
+    <h2 id="buys-you">what the architecture buys you</h2>
     <div class="card">
       <table class="props">
         <thead><tr><th>guarantee</th><th>mechanism</th></tr></thead>
@@ -290,7 +395,7 @@
       </table>
     </div>
 
-    <h2>stress-testing the property</h2>
+    <h2 id="stress">stress-testing the property</h2>
     <p>
       the interesting test of an architecture isn't how it behaves when
       everything works. it's how gracefully it fails — or how it'd hold up
@@ -368,7 +473,7 @@
       </p>
     </div>
 
-    <h2>what "permanent" actually means</h2>
+    <h2 id="permanent">what "permanent" actually means</h2>
     <p>
       throughout this page we say things like <em>"the data outlives the
       company"</em> and <em>"we can't unpublish from a public protocol."</em>
@@ -460,7 +565,7 @@
       </p>
     </div>
 
-    <h2>the platforms we picked, and why</h2>
+    <h2 id="platforms">the platforms we picked, and why</h2>
     <p>
       every architectural choice has alternatives. the ones blame.today
       runs on weren't obvious. here's the reasoning behind each.
@@ -615,7 +720,7 @@
       starting platforms were chosen by elimination, not by ideology.
     </p>
 
-    <h2>show your work</h2>
+    <h2 id="show-your-work">show your work</h2>
     <p>
       the pitch is <em>"you don't have to trust me."</em> that means i owe
       the actual mechanisms, not just the architecture diagrams. three
@@ -1068,7 +1173,7 @@
       someone's home address is on seven relays for the next decade.
     </p>
 
-    <h2>the flow, in retrospect</h2>
+    <h2 id="flow">the flow, in retrospect</h2>
     <p>
       the user flow has the same shape as the architecture — i didn't
       design it on purpose, it found its current shape as i made
@@ -1155,7 +1260,7 @@
       </p>
     </div>
 
-    <h2>where else this pattern fits</h2>
+    <h2 id="pattern">where else this pattern fits</h2>
     <p>
       the cargo we're carrying is: <em>cache is opinion, protocol is record.</em>
       anywhere that property would matter:
@@ -1173,7 +1278,7 @@
       the surface changes. if blame works, those are the next vehicles.
     </p>
 
-    <h2>the order it actually happened</h2>
+    <h2 id="order">the order it actually happened</h2>
     <p>
       i didn't sit down to design "a transparent public protocol for
       accountability data." i sat down to make a daily blame board because
@@ -1196,7 +1301,7 @@
       pattern, in <em>that</em> order. not the other way around.
     </p>
 
-    <h2>why now</h2>
+    <h2 id="why-now">why now</h2>
     <p>
       the idea has been bouncing around my head for roughly twenty years.
       i didn't have time, the tools, or the cheap infrastructure. now i
@@ -1222,7 +1327,7 @@
       for free, you might as well ship the last 20%. <em>so here we are.</em>
     </p>
 
-    <div class="card red">
+    <div class="card red" id="tldr">
       <h3>tl;dr</h3>
       <p>
         blame.today is a silly idea that accidentally grew an architecture.
@@ -1245,6 +1350,25 @@
       <div class="footer-id"><span class="label">you →</span><span id="visitor-key" class="key-display">…</span></div>
     </footer>
   </main>
+
+  <a href="#top" class="back-to-top" id="back-to-top" aria-label="back to top">↑</a>
+
+  <script>
+    // Show the back-to-top button only after the user has scrolled past
+    // the first viewport. Cheap scroll listener — passive, no rAF needed
+    // since we're just toggling one class.
+    (function () {
+      var btn = document.getElementById('back-to-top');
+      if (!btn) return;
+      var threshold = 400;
+      function update() {
+        if (window.scrollY > threshold) btn.classList.add('visible');
+        else btn.classList.remove('visible');
+      }
+      window.addEventListener('scroll', update, { passive: true });
+      update();
+    })();
+  </script>
   <script src="/footer.js"></script>
 </body>
 </html>
