@@ -505,6 +505,20 @@
         <li>daily decay: existing trending × 0.85 each refresh, today's contributions added on top, anything below 5 pruned. ~30-day fade for a one-time mention.</li>
         <li>leaderboard ranking uses bayesian shrinkage so each seeded vote counts as ≈ 1/10 of a real vote, fading further as real votes pile up</li>
       </ul>
+      <p>
+        <strong>generic-noun filter at extraction.</strong> the LLM
+        occasionally emits pronouns or ultra-generic single words as
+        entities — <em>man, they, people, it, everyone</em>. these
+        have no real referent; if accepted, the fuzzy-merge rule
+        absorbs every adjacent phrase into them (e.g. "shell-shocked
+        man" folding into "man" and "man" ranking instead of the real
+        entity). a blocklist at the parser layer drops single-token
+        extractions that match a small set of obvious pronouns +
+        generic nouns. multi-word phrases bypass it — only the
+        context-free single tokens are filtered. surfaced on the live
+        system, fixed before it could distort a real day.
+      </p>
+
       <p><strong>where this is heading: a council of models.</strong></p>
       <p>
         running everything through one llm has two problems beyond bias:
