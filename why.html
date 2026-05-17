@@ -123,11 +123,17 @@
       padding: 20px 22px;
       margin: 22px 0;
     }
-    footer { margin-top: 60px; padding-top: 20px; border-top: 3px solid var(--ink); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6; display: flex; justify-content: space-between; }
+    footer { margin-top: 60px; padding-top: 20px; border-top: 3px solid var(--ink); text-align: center; opacity: 0.7; }
+    footer .footer-tagline { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+    footer .footer-id { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; letter-spacing: 0.02em; }
+    footer .footer-id .label { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; opacity: 0.7; margin-right: 6px; }
+    footer .key-display { cursor: pointer; border-bottom: 1px dotted currentColor; user-select: all; transition: color 0.15s ease; }
+    footer .key-display:hover { color: var(--red); }
+    footer .key-display.copied { color: var(--red); border-bottom-color: var(--red); }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
   <main>
@@ -272,9 +278,10 @@
     </div>
 
     <footer>
-      <span>blame.today · anonymous · permanent · final</span>
-      <span><a href="/">home</a></span>
+      <div class="footer-tagline">anonymous · permanent · one blame per device per day</div>
+      <div class="footer-id"><span class="label">you →</span><span id="visitor-key" class="key-display">…</span></div>
     </footer>
   </main>
+  <script src="/footer.js"></script>
 </body>
 </html>
