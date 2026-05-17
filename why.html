@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>why this matters — blame.today</title>
-  <meta name="description" content="the architecture is the product. blame is the vehicle. the property: cache is opinion, protocol is record." />
+  <meta name="description" content="a silly idea that grew architecture. the writeup of an accident: cache is opinion, protocol is record." />
 
   <meta property="og:title" content="why this matters — blame.today" />
-  <meta property="og:description" content="the architecture is the product. blame is the vehicle." />
+  <meta property="og:description" content="a silly idea that grew architecture. the writeup of an accident." />
   <meta property="og:type" content="website" />
 
   <style>
@@ -139,13 +139,27 @@
   <main>
     <p class="small"><a href="/">← back</a></p>
     <h1>why this matters</h1>
-    <div class="tagline">the architecture is the product</div>
+    <div class="tagline">a silly idea that grew architecture</div>
 
     <div class="lede">
-      blame.today is a small app sitting on a property that isn't small.
-      <strong>the public owns the data; we own a view of it.</strong> the silly
-      surface is the marketing; the real cargo is the architecture
-      underneath. this page is for the people who care about the cargo.
+      blame.today started as a dumb thought i'd had for years: <em>a place
+      to publicly blame anyone or anything, one vote per device per day,
+      that's it.</em> no logins. no profiles. just a daily blame board.
+    </div>
+    <div class="lede">
+      the architecture wasn't the goal. it emerged. once i tried to actually
+      build it for free, free-tier composability became a constraint. once i
+      looked at what it would display (real people, real institutions, real
+      grievances), transparency became the next constraint. what fell out of
+      those two was a pattern that turned out to be more interesting than
+      the app.
+    </div>
+    <div class="lede">
+      so this page is the writeup of an accident. the silly idea is in the
+      middle; the serious-sounding architecture wrapped itself around the
+      silly idea, on inspection. if any of it's useful to you, that's a
+      bonus. <strong>this isn't a company, it's a proof-of-concept i did for
+      fun.</strong>
     </div>
 
     <div class="pullquote">cache is opinion.<br/>protocol is record.</div>
@@ -164,10 +178,11 @@
       </table>
     </div>
 
-    <h2>what happens when things break</h2>
+    <h2>stress-testing the property</h2>
     <p>
-      the interesting test of an architecture isn't how it behaves when everything works.
-      it's how gracefully it fails. four scenarios — none of them break the property.
+      the interesting test of an architecture isn't how it behaves when
+      everything works. it's how gracefully it fails — or how it'd hold up
+      if the people running it changed their minds. a few scenarios:
     </p>
 
     <div class="card">
@@ -211,13 +226,22 @@
     </div>
 
     <div class="card">
-      <h3>what if blame.today the company gets sued or shut down?</h3>
+      <h3>what if you start selling blames?</h3>
       <p>
-        the data isn't ours. the worker is a view. the canonical record is on
-        7 public nostr relays operated by independent parties, none of them named
-        "blame.today inc." even hostile takedown of every relay we publish to is
-        recoverable: any new relay accepts the same protocol, and clients can
-        reconfigure. <strong>the protocol outlives the company.</strong>
+        not the plan. blame.today is a fun PoC, not a business model. but
+        sure, anything could happen — i'm one person, and one person could
+        change their mind. if paid blames ever shipped, you'd see them on
+        the public ledger. <strong>paid blames are still nostr events.</strong>
+        the architecture doesn't have a private side-channel.
+      </p>
+      <p>
+        could i technically run a worse version of this with hidden votes?
+        sure. that would also be a different app — and i'd be telling on
+        myself the moment i quietly stopped publishing the corresponding
+        events to <code>/verify</code>. so mostly i'd just be shipping my
+        own scandal. that's the property doing its job: <em>you couldn't
+        start selling votes without people knowing.</em> that's something,
+        right? =P
       </p>
     </div>
 
@@ -250,30 +274,44 @@
       the surface changes. if blame works, those are the next vehicles.
     </p>
 
-    <h2>why blame — and not some serious app?</h2>
+    <h2>the order it actually happened</h2>
     <p>
-      because the surface is silly and the architecture is serious. if you ship
-      this architecture inside an "elections reform" app, you spend three years
-      on regulatory approval and four lawsuits. if you ship it inside
-      <em>"who's getting blamed today,"</em> you spend a weekend and find out
-      whether the pattern works.
+      i didn't sit down to design "a transparent public protocol for
+      accountability data." i sat down to make a daily blame board because
+      the idea kept making me laugh. then i needed it to be free. then i
+      needed it to be honest. then i looked at what i'd built and noticed
+      the pattern would work for any application where the publishing org
+      has incentive to bend the numbers.
     </p>
     <p>
-      once it works, the serious applications get built by someone else on the
-      same protocol. that's how patterns earn adoption — not by being
-      <em>announced</em>, but by being <em>demonstrated</em> on something
-      low-stakes nobody minds.
+      if you were designing this on purpose, you'd start with the
+      architecture and pick a serious application. but designing it on
+      purpose costs three years of regulatory review and a legal team.
+      designing it by accident — because you wanted a daily blame board —
+      costs a weekend.
+    </p>
+    <p>
+      so the order matters. the architecture is what it is <strong>because</strong>
+      the surface was low-stakes. it never had to clear an approval bar; it
+      just had to be cheap and honest, in that order. silly project, serious
+      pattern, in <em>that</em> order. not the other way around.
     </p>
 
     <div class="card red">
       <h3>tl;dr</h3>
       <p>
-        we built an anonymous voting app where you can't trust the company
-        running it — by design. if our numbers are wrong, you can prove it in
-        ten seconds. if we shut down, the data outlives us. it costs $4.19 so
-        far to operate. the architecture is the entire point; blame is the
-        vehicle for showing the architecture works. <a href="/">go vote ↑</a>
-        or <a href="/costs.html">see what we've spent →</a>.
+        blame.today is a silly idea that accidentally grew an architecture.
+        it's a daily blame board where you can't trust the person running it
+        to count honestly — and it doesn't matter, because you can recompute
+        the numbers yourself in ten seconds. the whole thing costs $4.19 to
+        operate. that wasn't the plan; that's what fell out of trying to
+        build a free anonymous voting app and then realizing transparency
+        mattered once i saw what it'd display.
+      </p>
+      <p>
+        since the pattern turned out to be reusable, here's the writeup. if
+        any of it's useful to you, that's a bonus.
+        <a href="/">go vote ↑</a> · <a href="/costs.html">see what i've spent →</a>
       </p>
     </div>
 
