@@ -368,6 +368,98 @@
       </p>
     </div>
 
+    <h2>what "permanent" actually means</h2>
+    <p>
+      throughout this page we say things like <em>"the data outlives the
+      company"</em> and <em>"we can't unpublish from a public protocol."</em>
+      both true. but it's worth being honest about the practical
+      shape of that permanence, because it cuts in both directions —
+      and it cuts equally hard.
+    </p>
+
+    <div class="card">
+      <h3>permanent only goes one direction</h3>
+      <p>
+        once an event is signed and published to a relay, <strong>we
+        cannot un-publish it.</strong> we have no admin call we can
+        make to any relay. relays sometimes prune very old events to
+        manage their own storage, but that's their decision, not ours,
+        and we publish to 7 of them so the data persists as long as
+        any one of them keeps it.
+      </p>
+      <p>
+        this means: <em>during development, every test event we
+        published to public relays is still there.</em> the alpha-era
+        votes we cast while testing pre-launch are publicly browsable.
+        they always will be, until the last relay decides to prune.
+      </p>
+      <p>
+        we tag pre-launch events with a <code>dev</code> namespace
+        (<code>blame.today:dev:vote:&lt;day&gt;</code>) so they're
+        clearly distinguished from production data. but the events
+        themselves still live on the relays, visible to anyone who
+        queries them. <strong>nothing on this page is hidden by being
+        labeled dev.</strong>
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>"wiping the ledger" isn't a real thing</h3>
+      <p>
+        people sometimes ask what we'd do if a schema change required
+        starting over. the answer is: <strong>we version the
+        namespace.</strong> events on nostr are tagged like
+        <code>blame.today:v1:vote:&lt;day&gt;</code> (current production
+        prefix). if we ever needed to break the schema in a meaningful
+        way, we'd bump to <code>v2:</code> and start publishing /
+        reading under that prefix. iOS + worker query the new tag;
+        the old data is ignored.
+      </p>
+      <p>
+        the v1 events <em>stay on the relays</em>. anyone with curiosity
+        can fetch them via the same protocol — they're a permanent
+        record of how the system worked in v1. our app doesn't read
+        them anymore; they're not erased.
+      </p>
+      <p>
+        this is a feature, not a bug. <strong>the same property that
+        lets us promise "we can't quietly rewrite history" is the
+        property that means we can't quietly erase mistakes either.</strong>
+        if a public figure's name was misspelled into the v1 ledger
+        forever via a bug, we can't go back and fix the past events.
+        we'd issue a corrective in v2 and document the migration
+        publicly.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>permanent for all practical purposes</h3>
+      <p>
+        in software we sometimes say <em>"permanent"</em> meaning
+        "stored in our database, where we still control deletion." on
+        a public protocol that's not the operative meaning.
+        <strong>permanent here means: as durable as 7 independent
+        relays operated by parties we don't pay or contract with
+        choose to make it.</strong>
+      </p>
+      <p>
+        in practice that's <em>very</em> durable. nostr relays have a
+        cultural norm of preserving signed events long-term. multiple
+        independent operators have the data; loss requires coordinated
+        deletion by all of them, which doesn't happen. if a few prune,
+        the rest serve. data survives the company easily. survives the
+        operators with comfortable redundancy.
+      </p>
+      <p>
+        what it does not mean: <strong>"we can take it back."</strong>
+        once it's out there, it's out there. that's the whole point of
+        the architecture, and it's why we treat the PII gate and
+        moderation as load-bearing rather than nice-to-have. the
+        decision to publish each event is a one-way door, and the
+        system is designed around that fact.
+      </p>
+    </div>
+
     <h2>the platforms we picked, and why</h2>
     <p>
       every architectural choice has alternatives. the ones blame.today
