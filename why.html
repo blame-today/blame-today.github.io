@@ -371,11 +371,11 @@
     <h2>show your work</h2>
     <p>
       the pitch is <em>"you don't have to trust me."</em> that means i owe
-      the actual mechanisms, not just the architecture diagrams. the two
+      the actual mechanisms, not just the architecture diagrams. three
       places people ask about most: <em>how do you tell devices apart,
-      and how do you turn today's news into seed numbers.</em> here's
-      both — with the abuse vectors i can think of and what i actually
-      think about each.
+      what literally ends up on the public ledger, and how do you turn
+      today's news into seed numbers.</em> here's all three — with the
+      abuse vectors i can think of and what i actually think about each.
     </p>
 
     <div class="card">
@@ -441,6 +441,80 @@
         news, the discrepancy is <em>visible by contrast.</em> the
         seeding isn't just for the empty-leaderboard problem — it's
         also a real-time sanity check on the user-vote distribution.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>what actually goes on the public ledger</h3>
+      <p>
+        every vote becomes a nostr event with this content, literally:
+        <code>{"target":"&lt;canonical-id&gt;","label":"&lt;display-label&gt;","app":"blame","v":1}</code>
+        — plus the signer's pubkey, the timestamp, the signature, and a
+        "d" tag identifying the day. that's it. seven relays we don't
+        own each get a copy. <strong>it's plaintext, it's permanent,
+        and we can't unpublish from a public protocol.</strong>
+      </p>
+      <p>
+        which means: <em>if you type private info into the target
+        field, that private info goes on the public ledger in
+        plaintext.</em> no encryption, no hashing. if you blame
+        "555-867-5309 home address" or "&lt;real name&gt; at &lt;real
+        address&gt;," that string is published to relays we have no
+        control over. <strong>this is the real attack surface and i
+        take it seriously.</strong>
+      </p>
+      <p>
+        <strong>why not just hash the target?</strong> because the
+        leaderboard depends on grouping ("how many people blamed
+        'mondays'?"), which needs the plaintext to do the count. if
+        we hash, we'd have to keep the plaintext mapping ourselves —
+        which makes us the trusted authority and breaks the
+        cache-vs-record property. auditors recomputing from raw events
+        need to see plaintext too, or they can't recompute. <em>the
+        architecture requires plaintext on the chain.</em> the only
+        viable defense is at the input boundary, before the vote is
+        ever signed.
+      </p>
+      <p><strong>what's in place today:</strong></p>
+      <ul>
+        <li><strong>length + word limits.</strong> targets are short.
+        addresses don't fit. full-name-plus-phone strings don't fit.
+        most accidental PII gets blocked by this alone.</li>
+        <li><strong>client-side regex blocks</strong> for obvious shapes:
+        phone numbers (<code>\d{3}[-.\s]?\d{3}[-.\s]?\d{4}</code>),
+        emails (anything containing <code>@</code> with a domain),
+        SSN patterns (<code>\d{3}-\d{2}-\d{4}</code>), and URLs.
+        vote rejected before signing.</li>
+        <li><strong>autocomplete bias.</strong> the trending list (news
+        + wikipedia seeds) is the path of least resistance — most
+        users tap a suggestion rather than typing a freeform target.</li>
+      </ul>
+      <p><strong>what's coming before app store launch:</strong></p>
+      <ul>
+        <li><strong>server-side LLM PII check.</strong> before the
+        worker accepts a vote (and before any nostr publication), a
+        small model runs a "does this look like a private individual or
+        contain PII?" check. rejected with a clear message if so. same
+        council pattern as seeding — multiple small models, consensus
+        rejection beats any single model's blind spots.</li>
+        <li><strong>private-individual heuristic.</strong> public
+        figures (anyone with a wikipedia page, anyone trending in
+        today's news) are explicitly allowed. unknown human-shaped
+        names ("first-last") that match neither get rejected as
+        potentially private. errs toward "blame abstractions and
+        public figures, not unknown individuals."</li>
+      </ul>
+      <p>
+        <strong>my opinion:</strong> the architecture is right
+        <em>(cache is opinion, protocol is record)</em> but it puts
+        the entire responsibility for PII prevention on the input
+        layer. that layer needs to be robust before any meaningful
+        traffic arrives, because once a target is on the ledger it's
+        there. <strong>treating this as a real problem instead of an
+        edge case is part of why launch isn't tomorrow.</strong> if
+        you spot a way to slip PII past the filters, tell me — i'd
+        rather hear it from a friendly tester than discover it after
+        someone's home address is on seven relays for the next decade.
       </p>
     </div>
 
