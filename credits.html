@@ -250,30 +250,32 @@
     <h2 id="music">music</h2>
     <div class="card">
       <p>
-        the in-app background music tracks come from
-        <a href="https://incompetech.com/">incompetech.com</a> —
-        Kevin MacLeod's catalog of royalty-free instrumental music,
-        licensed under
-        <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a>.
-        attribution required; this page is it.
+        intentionally bad elevator muzak, synthesized programmatically
+        in pure Python (no external audio libraries — just <code>math</code>,
+        <code>wave</code>, and <code>struct</code>). a sine + 2nd-harmonic
+        vibraphone with 6 Hz vibrato over a triangle bass, two short
+        chord progressions:
       </p>
       <table class="credits">
-        <thead><tr><th>track</th><th>used for</th><th class="lic">license</th></tr></thead>
+        <thead><tr><th>loop</th><th>chord progression</th><th>tempo</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong id="compose-track">[track TBD]</strong> — Kevin MacLeod</td>
-            <td>compose screen background loop</td>
-            <td class="lic">CC-BY 4.0</td>
+            <td>compose-loop</td>
+            <td>Cmaj7 → Am7 → Dm7 → G7 (ii-V-I in C, repeated)</td>
+            <td>80 BPM</td>
           </tr>
           <tr>
-            <td><strong id="result-track">[track TBD]</strong> — Kevin MacLeod</td>
-            <td>result/board screen background loop</td>
-            <td class="lic">CC-BY 4.0</td>
+            <td>result-loop</td>
+            <td>Fmaj7 → Bbmaj7 → C7 → Fmaj7 (I-IV-V in F, with walking melody)</td>
+            <td>100 BPM</td>
           </tr>
         </tbody>
       </table>
       <p class="small">
-        music by Kevin MacLeod · incompetech.com · licensed CC-BY 4.0
+        source: <a href="https://github.com/blame-today/blame/blob/main/scripts/generate-elevator-music.py">scripts/generate-elevator-music.py</a>.
+        re-runnable + deterministic — tweak the progressions or
+        synthesis params and rebuild the .wav files. no attribution
+        needed; the muzak is ours, for better or worse.
       </p>
     </div>
 
