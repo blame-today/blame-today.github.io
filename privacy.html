@@ -290,33 +290,45 @@
       </p>
     </div>
 
-    <h2 id="pii-gate">keeping private info off the public ledger</h2>
+    <h2 id="pii-gate">what reaches the public ledger</h2>
     <div class="card">
       <p>
-        because publication is permanent, we filter <em>what gets
-        published</em> rather than trying to delete things after.
-        the filter runs both on your device and on our worker
-        before signing. it catches:
+        because publication is permanent, we constrain <em>what gets
+        published</em> rather than try to delete things after. the
+        public ledger only accepts votes against entries in a
+        <strong>pre-existing curated pool</strong> of ~34,000 public
+        figures, brands, countries, and concepts. anything else
+        stays on your device.
+      </p>
+      <p>
+        the pool comes from Wikipedia's top-pageview list, filtered
+        for length and against the open
+        <a href="https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words">LDNOOBW</a>
+        standard. it's our list; we maintain it; it doesn't grow on
+        a vote.
+      </p>
+      <p>
+        what happens to a vote that isn't a pool entry:
       </p>
       <ul>
-        <li>obvious patterns: phone numbers, email addresses, SSN
+        <li>obvious patterns (phone numbers, email addresses, SSN
         shapes, URLs, street addresses, credit-card-shaped digit
-        runs</li>
-        <li>vulgar tokens via the open
-        <a href="https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words">LDNOOBW</a>
-        standard list (we adopt the public list verbatim — no
-        editorial judgment)</li>
-        <li>any target that doesn't look like a public figure,
-        brand, country, concept, or other publicly-discussed thing —
-        determined by a council of small language models</li>
+        runs) → <strong>private vote, stays on your device</strong></li>
+        <li>anything else not in the pool → <strong>private vote,
+        stays on your device</strong></li>
       </ul>
       <p>
-        if any of those fire, your vote <strong>stays on your
-        device only</strong>. it doesn't reach the public ledger,
-        doesn't appear on the leaderboard, doesn't get sent to
-        nostr or to our worker's database. the cooldown still
-        applies (one vote per day) so the filter isn't a retry
-        loophole. detail at <a href="/how.html#moderation">how → moderation</a>.
+        a private vote doesn't reach the public ledger, doesn't
+        appear on the leaderboard, doesn't get sent to nostr or to
+        our worker's database. the cooldown still applies (one vote
+        per day) so the routing isn't a retry loophole. detail at
+        <a href="/how.html#moderation">how → moderation</a>.
+      </p>
+      <p>
+        this is what we landed on after running into the realities
+        of moderating a permanent public ledger as a hobby project.
+        the journey is written up at
+        <a href="/why.html#journey">why → what we wanted vs what we built</a>.
       </p>
     </div>
 
@@ -437,9 +449,17 @@
     <h2 id="contact">contact</h2>
     <div class="card">
       <p>
-        questions, requests, complaints: <a href="mailto:hello@blame.today">hello@blame.today</a>.
-        we read everything; we reply when there's something to
-        say.
+        the canonical channel for questions, concerns, or arguments
+        about the pool / moderation / anything we do publicly:
+        <a href="https://github.com/blame-today/blame/issues">github.com/blame-today/blame/issues</a>.
+        public, transparent, no ETA on response — it's a hobby
+        project, we read everything but we won't promise a turnaround
+        we can't keep.
+      </p>
+      <p>
+        for anything private — a real GDPR request, a data-protection
+        complaint, anything not appropriate for a public issue —
+        <a href="mailto:hello@blame.today">hello@blame.today</a>.
       </p>
     </div>
 

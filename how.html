@@ -895,10 +895,11 @@
     </div>
 
     <div class="card">
-      <h3>two things had to change</h3>
+      <h3>first attempt: engineer the filter</h3>
       <p>
-        once i thought about actually shipping, two parts of the
-        original plan had to evolve.
+        the first answer wasn't <em>simplify the input</em> — it was
+        <em>build a smarter gate.</em> two parts of the original plan
+        evolved:
       </p>
       <p><strong>1. seeding became more important than i thought.</strong></p>
       <p>
@@ -921,22 +922,10 @@
         additional public source makes the zeitgeist signal louder
         relative to any single user-typed name.
       </p>
-      <p>
-        to put a sharper edge on this: with five aggregated public
-        sources feeding the seed signal (news, wikipedia, kalshi,
-        polymarket, reddit-velocity), the top ~100 entries on any day
-        are essentially <strong>locked in by the public zeitgeist.</strong>
-        a coordinated bot army would have to overwhelm five aggregated
-        public signals to push one PII entry into visible territory.
-        that's a structurally very high bar — and the structure is
-        defending the user, not the company. <em>seed-source
-        diversification isn't just a bias hedge; it's a moderation
-        force multiplier.</em>
-      </p>
       <p><strong>2. moderation had to become automatic.</strong></p>
       <p>
-        i'm one person. i can't review every vote, and i can't be
-        awake every hour. so moderation has to:
+        one person can't review every vote, and can't be awake every
+        hour. moderation has to:
       </p>
       <ul>
         <li>run in the worker <em>before</em> the vote is signed and
@@ -949,17 +938,65 @@
         legit vote) is recoverable — the user retries. the cost of a
         false negative (we let PII through) is forever.</li>
       </ul>
+      <p>
+        the first cut of this was a layered gate: regex blocks the
+        obvious PII shapes, then a canonical pool of ~34k Wikipedia
+        entities allows the easy publics, then a vulgarity check,
+        then a Wikipedia round-trip for unknowns, and finally an LLM
+        council voting on the gray-zone targets. for a while that
+        seemed fine.
+      </p>
     </div>
 
     <div class="card">
-      <h3>the filter stack — what blocks, what allows, and in what order</h3>
+      <h3>second attempt: simplify the input</h3>
       <p>
-        every vote that comes in passes through a layered gate. each
-        layer is faster than the next; the slow stuff only runs when
-        the fast paths can't decide. the order matters — the layers
-        are arranged so the cheapest "definitely public" signals get
-        the chance to wave a vote through before we burn LLM calls
-        or HTTP fetches.
+        a few weeks of building the layered gate later, we ran into
+        two things the engineering couldn't paper over:
+      </p>
+      <ul>
+        <li><strong>Apple's UGC rules</strong> (Guideline 1.2) require
+        any app with user-generated content to provide a report
+        mechanism with timely responses + the ability to block
+        abusive users. responsibly implementing that is real ongoing
+        work — not the right shape for a hobby project.</li>
+        <li><strong>the moral problem of voting on private
+        individuals.</strong> even with a perfect filter, the question
+        "is it OK for an app whose product is anonymous public
+        sentiment to accept any string a user types about any
+        person?" answers itself eventually. the answer is no.</li>
+      </ul>
+      <p>
+        the cleanest response: <strong>don't accept user-generated
+        labels into the public ledger at all.</strong> a vote on a
+        pre-existing entity in a curated pool isn't user-generated
+        content — same shape as a yelp star rating on a business or
+        a reddit upvote on someone else's post. the user picks from
+        a list; the count goes up; nothing they typed becomes part
+        of the public record.
+      </p>
+      <p>
+        the freeform-text path stays in the app — you can still type
+        whoever or whatever you want — but anything that isn't a
+        pool entry routes to <strong>private vote</strong>: stays on
+        your device, never reaches the public ledger. you get the
+        cathartic tap; nobody else has to host the consequence.
+      </p>
+      <p>
+        so the gate stack ended up much simpler than the first cut:
+        the pool replaces the council, and the council + Wikipedia
+        round-trip become <em>proposal paths for growing the pool
+        under our control</em> rather than auto-approval paths to
+        public.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>the gate — what reaches the public ledger</h3>
+      <p>
+        every vote passes through a small layered gate. the order
+        matters — the fast paths short-circuit, the slow ones never
+        approve.
       </p>
 
       <p><strong>at the input layer (on the user's phone):</strong></p>
@@ -977,64 +1014,62 @@
 
       <p><strong>on the worker, in order:</strong></p>
       <ul>
-        <li><strong>obvious-PII regex → block.</strong> phone numbers
+        <li><strong>obvious-PII regex → private.</strong> phone numbers
         (<code>\d{3}[-.\s]?\d{3}[-.\s]?\d{4}</code>), social-security
         patterns (<code>\d{3}-\d{2}-\d{4}</code>), email shapes
         (<code>@…\.tld</code>), URLs (<code>https?://</code>),
         street-address shapes (<code>\d+ name (street|ave|rd|blvd|…)</code>),
-        13–19 digit credit-card shapes. cheap, definitive, never
-        allowed.</li>
-        <li><strong>already in trending → allow.</strong> if the
-        target's already in today's seeded leaderboard, it survived
-        the seeding pipeline's vetting earlier this morning. one
-        SQLite lookup, no further work.</li>
-        <li><strong>in the canonical pool → allow.</strong> 34,363
+        13–19 digit credit-card shapes. cheap, definitive — short-circuits
+        before anything else.</li>
+        <li><strong>in the canonical pool → public.</strong> 34,363
         entities from the last decade's Wikipedia top-pageviews,
         bundled with the worker as a static dictionary. in-memory
         Map lookup, microseconds. anyone in this set is a
-        publicly-discussed entity by construction.</li>
-        <li><strong>vulgarity check → block.</strong> token-level
-        + whole-label match against
+        publicly-discussed entity by construction. the pool itself
+        is whole-label-filtered against
         <a href="https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words">LDNOOBW</a>
-        (Shutterstock's open standard for English profanity
-        filtering, MIT-licensed, ~400 entries). we adopt the list
-        verbatim — no editorializing. runs AFTER the pool / trending
-        allows so public figures whose names contain LDNOOBW tokens
-        ("Dick Cheney", "Carrie Coon", "Alan Cumming") stay
-        public-votable. the pool itself is whole-label-filtered
-        against the same list so slur articles don't appear in
-        autocomplete in the first place.</li>
-        <li><strong>cached prior decision → reuse.</strong> targets
-        we've seen before keep their previous allow/block ruling.</li>
-        <li><strong>has a Wikipedia article → allow.</strong> the
-        pool's superset. one HTTP round-trip to en.wikipedia.org's
-        summary endpoint; 200 = public, 404 = unknown. edge-cached
-        at the CF layer for a day so the same name doesn't ping
-        Wikipedia repeatedly.</li>
-        <li><strong>LLM council (fallback) → allow / block.</strong>
-        the gray-zone filter. three small models (llama-3.1-8b,
-        mistral-7b, gemma-7b) vote PUBLIC, PRIVATE, or UNCERTAIN on
-        the target. ANY PUBLIC vote = allow. zero PUBLIC votes =
-        block. the rule is lopsided on purpose: small LLMs are bad
-        at confidently identifying every public figure (they
-        UNCERTAIN on common names like "michael jordan"), so we
-        trust positive evidence — if any model recognizes the entity,
-        it's enough.</li>
+        before bundling, so slur articles don't appear in autocomplete
+        in the first place.</li>
+        <li><strong>in today's trending → public.</strong> if the
+        target's already in today's seeded leaderboard, it survived
+        the seeding pipeline's vetting earlier this morning. one
+        SQLite lookup, no further work.</li>
+        <li><strong>cached prior pool-decision → public.</strong>
+        targets we've previously promoted into the pool keep their
+        decision.</li>
+        <li><strong>anything else → private.</strong> the vote saves
+        to the user's phone only — no row in the worker's database,
+        no nostr publish, no leaderboard appearance. the 24h cooldown
+        still applies, so private-routing isn't a retry loophole.</li>
       </ul>
 
-      <p><strong>what "block" means (the rejection isn't a rejection):</strong></p>
+      <p><strong>what we use Wikipedia + the LLM council for (under the new architecture):</strong></p>
       <ul>
-        <li><strong>local-only vote.</strong> blocked targets don't
-        get rejected. the vote saves to the user's phone — same 24h
-        cooldown as a public vote applies (so the gate isn't a retry
-        loophole), but no row in the worker's database, no nostr
-        publish, no leaderboard appearance. the user sees a
-        per-failure-type explanation ("that looks like a phone
-        number — saving your vote to this device only").</li>
+        <li><strong>not as public-approval paths.</strong> the previous
+        version of this gate sent unknown targets to a Wikipedia
+        lookup, then to a three-model LLM council, and approved
+        anything either positively identified. that's gone — those
+        routes used to let user-typed strings onto the public ledger,
+        which is exactly the problem we're now avoiding.</li>
+        <li><strong>as proposal paths for growing the pool.</strong>
+        we can still use them offline to surface candidate additions
+        — a target that gets typed enough times, has a strong
+        Wikipedia presence, and the council confidently rules public,
+        might be a pool-growth candidate. but the pool grows under
+        our control, not on a vote.</li>
+      </ul>
+
+      <p><strong>what "private" means (the routing isn't a rejection):</strong></p>
+      <ul>
+        <li><strong>local-only vote.</strong> the vote saves to your
+        phone with the same 24h cooldown a public vote would have.
+        you see a per-route explanation ("that looks like a phone
+        number — saving locally" / "we don't have a public record
+        for this — saving locally").</li>
         <li>the architecture's permanence promise cuts both ways:
         once a vote is on the public ledger, it's there forever.
-        the local-only mode is how we honor "type anyone, anything"
-        without paying that cost on every borderline case.</li>
+        private-routing is how we honor "type anyone, anything"
+        without paying that cost on the long tail.</li>
       </ul>
 
       <p><strong>on the seeding side — how duplicate entities get folded:</strong></p>
@@ -1107,18 +1142,23 @@
       "zero moderation, fully open" is a sentence you can say before
       you actually try to ship the thing. once you're staring at a
       real input box that a real user can type a real address into,
-      the responsibility lands. the architecture is right —
-      <em>cache is opinion, protocol is record</em> — but it puts the
-      entire moderation burden on the input layer, because once a
-      string is on the relays we can't pull it back. so the input
-      layer has to be robust before any traffic of any size arrives.
-      <strong>treating this as the real problem it is (instead of an
-      edge case) is one of the main reasons launch isn't tomorrow.</strong>
+      the responsibility lands. and the first answer — engineer a
+      smarter gate — got us most of the way but kept making us the
+      arbiter of who counts as "public enough." the second answer is
+      structurally simpler: <em>don't accept user-generated labels
+      onto the public ledger at all.</em> the pool grows under our
+      control; freeform stays on-device; the gate stays small and
+      mechanical.
     </p>
     <p>
-      if you find a way to slip PII past the filters: <strong>tell me.</strong>
-      i'd rather hear it from a friendly tester than discover it after
-      someone's home address is on seven relays for the next decade.
+      if you find a way to slip something past the gate that
+      shouldn't be public: <strong>tell us.</strong> we'd rather
+      hear it from a friendly tester than discover it after someone's
+      home address is on seven relays for the next decade. the right
+      channel is <a href="https://github.com/blame-today/blame/issues">github.com/blame-today/blame/issues</a>
+      (public, no ETA on response) or
+      <a href="mailto:hello@blame.today">hello@blame.today</a>
+      for anything private.
     </p>
 
     <h2 id="flow">the flow, in retrospect</h2>

@@ -316,6 +316,7 @@
         <div class="toc-group">
           <div class="toc-group-label">the pitch</div>
           <a href="#goal">the goal</a>
+          <a href="#journey">what we wanted vs built</a>
           <a href="#what-this-isnt">what this isn't</a>
           <a href="#buys-you">what it buys you</a>
         </div>
@@ -370,6 +371,108 @@
         verify the math in ten seconds," anyone who needs that property
         for something more serious knows it's possible. the real artifact
         isn't the app or the architecture. it's the existence proof.
+      </p>
+    </div>
+
+    <h2 id="journey">what we wanted vs what we built</h2>
+    <p>
+      worth being honest about the gap between the original idea and
+      what actually shipped. they're not the same thing, and the
+      reasons aren't all flattering.
+    </p>
+
+    <div class="card">
+      <h3>what we wanted</h3>
+      <p>
+        the original idea was the simplest possible version:
+        <strong>anyone types anything, hits vote, done.</strong>
+        maximally permissive, maximally fun, maximally honest about
+        being a daily blame board. no curation, no gatekeeping. you
+        want to blame your boss, the sun, monday, your ex's new
+        partner, the algorithm, mondays again — it all counts
+        equally. the leaderboard is whatever it is.
+      </p>
+      <p>
+        that's still the <em>spirit</em>. and on the app's surface
+        you can still type whatever you want. the part that changed
+        is what becomes part of the public, permanent record.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>what we ran into</h3>
+      <p>
+        three constraints showed up between "fun thought i had for
+        years" and "actually shipping this":
+      </p>
+      <ul>
+        <li><strong>legal.</strong> Apple's App Store rules (Guideline
+        1.2) treat any app where users post content publicly as
+        user-generated-content and require: a content filter, a
+        report mechanism with timely responses to concerns, the
+        ability to block abusive users, and published contact info.
+        a one-person hobby project can't responsibly meet "timely
+        responses to concerns" as an ongoing obligation.</li>
+        <li><strong>moral.</strong> even with a perfect filter, the
+        question <em>"is it OK for a permanent public ledger to
+        accept any name a user types about any private person?"</em>
+        eventually answers itself. the architecture's permanence
+        promise cuts both ways — once it's on the relays, we cannot
+        unpublish. that's the property the project exists to defend,
+        and it's also the property that makes "type anyone" reckless
+        without strong constraints on what counts.</li>
+        <li><strong>technical.</strong> the engineered answer (a
+        layered filter — regex + LLM council + Wikipedia round-trips)
+        works, but it puts us in the position of being the arbiter
+        of who counts as <em>public-enough</em>. that's a moderation
+        role we don't want and can't reliably play.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>what we built</h3>
+      <p>
+        the response that resolves all three at once: <strong>the
+        public ledger only accepts votes against a pre-existing
+        curated pool of public figures, brands, countries, and
+        concepts</strong> (~34,000 entries, sourced from Wikipedia
+        top-pageviews, filtered against the open
+        <a href="https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words">LDNOOBW</a>
+        list). a vote on a pool entry is a count increment against a
+        pre-existing entity — the same shape as a yelp star rating
+        or a reddit upvote, and not user-generated content under any
+        reasonable read of the term.
+      </p>
+      <p>
+        anything else — a friend, an inside joke, a coworker, a
+        person not in the pool — routes to <strong>private vote</strong>.
+        the vote saves on your phone, the cooldown counts, nothing
+        reaches the public ledger. you get the cathartic tap; nobody
+        else has to host the consequence.
+      </p>
+      <p>
+        this isn't us hiding what changed. <em>cache is opinion,
+        protocol is record</em> still holds — the public ledger is
+        permanent, the leaderboard is verifiable, anyone can
+        recompute the math. we just narrowed the set of things that
+        make it onto the record so the responsibility we hold for
+        it stays scoped to what one person can responsibly hold.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>what we don't promise</h3>
+      <p>
+        we're a hobby project. the pool's curation is "best effort
+        on a weekend." we read concerns at
+        <a href="https://github.com/blame-today/blame/issues">github.com/blame-today/blame/issues</a>
+        (public, no ETA on response — that matches what we can
+        actually do) and at <a href="mailto:hello@blame.today">hello@blame.today</a>
+        for private concerns. we don't promise to act on every
+        report. we do promise that what we publish is mechanical
+        (the gate is in the code) and what we won't publish is also
+        mechanical (the pool is the list). there's no hidden human
+        layer making case-by-case decisions about your vote.
       </p>
     </div>
 

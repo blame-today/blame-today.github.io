@@ -323,33 +323,25 @@
       </p>
     </div>
 
-    <h2 id="moderation">moderation — what we may keep off the public ledger</h2>
+    <h2 id="moderation">moderation — pool-only public ledger</h2>
     <div class="card">
       <p>
-        we may decide a vote should not be published to the public
-        ledger and instead keep it on your device only. this is what
-        we call <em>private-vote routing</em>. it fires when the
-        target looks like:
-      </p>
-      <ul>
-        <li>private information (phone number, email, SSN-shaped
-        digit run, etc.) per the
-        <a href="/privacy.html#pii-gate">PII gate</a></li>
-        <li>vulgar content per the open
+        the public ledger only accepts votes against entries in a
+        <strong>curated pool</strong> we maintain (~34,000 public
+        figures, brands, countries, and concepts, sourced from
+        Wikipedia top-pageviews and filtered against the open
         <a href="https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words">LDNOOBW</a>
-        standard list</li>
-        <li>something that isn't a public figure, brand, country,
-        concept, or other publicly-discussed thing — as determined
-        by a council of small language models</li>
-      </ul>
+        list). a vote on anything else <strong>stays on your device
+        only</strong> as a private vote.
+      </p>
       <p>
-        we don't moderate by political viewpoint, and we don't
-        manually edit individual votes. the filter is mechanical,
-        adopts open standards, and runs the same way for everyone.
-        if you think a target was incorrectly filtered, tell us at
-        <a href="mailto:hello@blame.today">hello@blame.today</a> — we
-        can adjust the rules; we cannot retroactively publish
-        previously-filtered votes (they were never signed).
+        we don't moderate by political viewpoint. the gate is
+        mechanical: the target is either in the pool (or in the
+        derived trending / cached sets) or it routes to private.
+        the pool doesn't grow on a vote — it grows under our
+        control. detail at <a href="/privacy.html#pii-gate">privacy →
+        what reaches the public ledger</a> and
+        <a href="/how.html#moderation">how → moderation</a>.
       </p>
       <p>
         we may also remove a row from our worker's cached
@@ -357,6 +349,13 @@
         spam, etc.). this does <em>not</em> remove the underlying
         events from the public nostr relays — we have no such power
         — but it does affect what shows up in our leaderboard view.
+      </p>
+      <p>
+        questions, concerns, or arguments about the pool live at
+        <a href="https://github.com/blame-today/blame/issues">github.com/blame-today/blame/issues</a>
+        (public, no ETA on response — it's a hobby project). for
+        private concerns,
+        <a href="mailto:hello@blame.today">hello@blame.today</a>.
       </p>
     </div>
 
