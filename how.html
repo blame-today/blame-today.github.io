@@ -950,32 +950,114 @@
     </div>
 
     <div class="card">
-      <h3>what's running now, what's coming before launch</h3>
-      <p><strong>today, at the input layer:</strong></p>
+      <h3>the filter stack — what blocks, what allows, and in what order</h3>
+      <p>
+        every vote that comes in passes through a layered gate. each
+        layer is faster than the next; the slow stuff only runs when
+        the fast paths can't decide. the order matters — the layers
+        are arranged so the cheapest "definitely public" signals get
+        the chance to wave a vote through before we burn LLM calls
+        or HTTP fetches.
+      </p>
+
+      <p><strong>at the input layer (on the user's phone):</strong></p>
       <ul>
-        <li><strong>length + word limits.</strong> targets are short.
-        most accidental PII can't physically fit in the field.</li>
-        <li><strong>regex blocks</strong> for phone numbers
-        (<code>\d{3}[-.\s]?\d{3}[-.\s]?\d{4}</code>), emails
-        (anything with <code>@</code> and a TLD), SSN patterns
-        (<code>\d{3}-\d{2}-\d{4}</code>), URL shapes. vote rejected
-        before signing.</li>
-        <li><strong>autocomplete bias.</strong> the trending list
-        (news + wikipedia seeds) is the path of least resistance —
-        most users tap a suggestion and never type a freeform target.</li>
+        <li><strong>40-character cap on the text field.</strong>
+        targets are short. typed input gets truncated past 40 chars
+        before the request is even composed. matches the canonical
+        pool's display-width cap.</li>
+        <li><strong>autocomplete bias.</strong> the typing UX surfaces
+        the canonical pool (~34k high-pageview Wikipedia entities) +
+        today's trending. the path of least resistance leads to a
+        known public figure — most users tap a suggestion and never
+        freeform-type a name.</li>
       </ul>
-      <p><strong>before app store submission:</strong></p>
+
+      <p><strong>on the worker, in order, fastest first:</strong></p>
       <ul>
-        <li><strong>LLM PII check at the worker</strong>, using the
-        same council pattern as seeding. multiple small models, vote
-        rejected if any council member flags PII or the consensus is
-        uncertain. fail-closed by design.</li>
-        <li><strong>public-figure heuristic.</strong> targets that
-        match a wikipedia page or appear in today's news are
-        explicitly allowed. unknown "first-last" name shapes that
-        match neither get rejected as potentially private. errs toward
-        <em>"blame abstractions and public figures, not unknown
-        individuals."</em></li>
+        <li><strong>already in trending → allow.</strong> if the
+        target's already in today's seeded leaderboard, it survived
+        the seeding pipeline's vetting earlier this morning. one
+        SQLite lookup, no further work.</li>
+        <li><strong>in the canonical pool → allow.</strong> 34,397
+        entities from the last decade's Wikipedia top-pageviews,
+        bundled with the worker as a static dictionary. in-memory
+        Map lookup, microseconds. anyone in this set is a
+        publicly-discussed entity by construction.</li>
+        <li><strong>obvious-PII regex → block.</strong> phone numbers
+        (<code>\d{3}[-.\s]?\d{3}[-.\s]?\d{4}</code>), social-security
+        patterns (<code>\d{3}-\d{2}-\d{4}</code>), email shapes
+        (<code>@…\.tld</code>), URLs (<code>https?://</code>),
+        street-address shapes (<code>\d+ name (street|ave|rd|blvd|…)</code>),
+        13–19 digit credit-card shapes. the only "block" before any
+        LLM call. catches anything the user obviously shouldn't be
+        publishing.</li>
+        <li><strong>cached prior decision → reuse.</strong> targets
+        we've seen before keep their previous allow/block ruling.</li>
+        <li><strong>has a Wikipedia article → allow.</strong> the
+        pool's superset. one HTTP round-trip to en.wikipedia.org's
+        summary endpoint; 200 = public, 404 = unknown. edge-cached
+        at the CF layer for a day so the same name doesn't ping
+        Wikipedia repeatedly.</li>
+        <li><strong>LLM council (fallback) → allow / block.</strong>
+        the gray-zone filter. three small models (llama-3.1-8b,
+        mistral-7b, gemma-7b) vote PUBLIC, PRIVATE, or UNCERTAIN on
+        the target. ANY PUBLIC vote = allow. zero PUBLIC votes =
+        block. the rule is lopsided on purpose: small LLMs are bad
+        at confidently identifying every public figure (they
+        UNCERTAIN on common names like "michael jordan"), so we
+        trust positive evidence — if any model recognizes the entity,
+        it's enough.</li>
+      </ul>
+
+      <p><strong>what "block" means (the rejection isn't a rejection):</strong></p>
+      <ul>
+        <li><strong>local-only vote.</strong> blocked targets don't
+        get rejected. the vote saves to the user's phone — same 24h
+        cooldown as a public vote applies (so the gate isn't a retry
+        loophole), but no row in the worker's database, no nostr
+        publish, no leaderboard appearance. the user sees a
+        per-failure-type explanation ("that looks like a phone
+        number — saving your vote to this device only").</li>
+        <li>the architecture's permanence promise cuts both ways:
+        once a vote is on the public ledger, it's there forever.
+        the local-only mode is how we honor "type anyone, anything"
+        without paying that cost on every borderline case.</li>
+      </ul>
+
+      <p><strong>on the seeding side — how duplicate entities get folded:</strong></p>
+      <ul>
+        <li>LLM extractions of "musk" / "elon musk" / "Mr. Musk"
+        / "Tesla CEO" all canonicalize to the same id via the
+        worker's <code>canonicalize()</code> function (lowercase,
+        NFKD-transliterate accents, replace non-alphanumeric with
+        hyphen, expand known abbreviations).</li>
+        <li>cross-entity fuzzy merging: token-subset matching plus
+        Levenshtein-≤2 typo tolerance. "trump" + "donald trump"
+        fold; "iran" + "iraq" don't (close letters but
+        meaningfully different).</li>
+        <li>canonical pool wins ties on display-name. if either side
+        of a fuzzy pair is a Wikipedia pool entry, that entry's
+        casing ("Donald Trump") becomes the leaderboard label.</li>
+        <li>a consolidation pass runs each daily refresh — folds
+        any duplicate trending rows that survived prior refreshes
+        (e.g. legacy accumulations from before the current
+        dedup logic landed), moves their daily_rollup + daily_context
+        rows onto the canonical id.</li>
+      </ul>
+
+      <p><strong>what we don't do:</strong></p>
+      <ul>
+        <li>we don't identify users. uuid is hashed before storage;
+        no name, no IP, no apple ID, no email is ever associated
+        with a vote.</li>
+        <li>we don't moderate the leaderboard view based on who's
+        looking. the gate runs at acceptance, not retrieval — once
+        a vote passes, every viewer sees the same leaderboard.</li>
+        <li>we don't claim the filter is perfect. small LLMs miss
+        edge cases. the local-only mode is the safety valve: a
+        false-negative on the gate just keeps the vote off the
+        public ledger, not off the user's device.</li>
       </ul>
     </div>
 
