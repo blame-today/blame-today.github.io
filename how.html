@@ -1045,7 +1045,14 @@
         <li>cross-entity fuzzy merging: token-subset matching plus
         Levenshtein-≤2 typo tolerance. "trump" + "donald trump"
         fold; "iran" + "iraq" don't (close letters but
-        meaningfully different).</li>
+        meaningfully different). stopwords for the token-subset
+        check come from
+        <a href="https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/feature_extraction/_stop_words.py">scikit-learn's ENGLISH_STOP_WORDS</a>
+        (originally <a href="http://ir.dcs.gla.ac.uk/resources/linguistic_utils/stop_words">Glasgow IR Group</a>)
+        + a small domain-specific list of honorifics + political
+        titles ("president", "senator", "ceo") that standard
+        stopword lists don't include but get prepended to real
+        names.</li>
         <li>canonical pool wins ties on display-name. if either side
         of a fuzzy pair is a Wikipedia pool entry, that entry's
         casing ("Donald Trump") becomes the leaderboard label.</li>
