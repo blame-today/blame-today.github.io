@@ -973,25 +973,35 @@
         freeform-type a name.</li>
       </ul>
 
-      <p><strong>on the worker, in order, fastest first:</strong></p>
+      <p><strong>on the worker, in order:</strong></p>
       <ul>
-        <li><strong>already in trending → allow.</strong> if the
-        target's already in today's seeded leaderboard, it survived
-        the seeding pipeline's vetting earlier this morning. one
-        SQLite lookup, no further work.</li>
-        <li><strong>in the canonical pool → allow.</strong> 34,397
-        entities from the last decade's Wikipedia top-pageviews,
-        bundled with the worker as a static dictionary. in-memory
-        Map lookup, microseconds. anyone in this set is a
-        publicly-discussed entity by construction.</li>
         <li><strong>obvious-PII regex → block.</strong> phone numbers
         (<code>\d{3}[-.\s]?\d{3}[-.\s]?\d{4}</code>), social-security
         patterns (<code>\d{3}-\d{2}-\d{4}</code>), email shapes
         (<code>@…\.tld</code>), URLs (<code>https?://</code>),
         street-address shapes (<code>\d+ name (street|ave|rd|blvd|…)</code>),
-        13–19 digit credit-card shapes. the only "block" before any
-        LLM call. catches anything the user obviously shouldn't be
-        publishing.</li>
+        13–19 digit credit-card shapes. cheap, definitive, never
+        allowed.</li>
+        <li><strong>already in trending → allow.</strong> if the
+        target's already in today's seeded leaderboard, it survived
+        the seeding pipeline's vetting earlier this morning. one
+        SQLite lookup, no further work.</li>
+        <li><strong>in the canonical pool → allow.</strong> 34,363
+        entities from the last decade's Wikipedia top-pageviews,
+        bundled with the worker as a static dictionary. in-memory
+        Map lookup, microseconds. anyone in this set is a
+        publicly-discussed entity by construction.</li>
+        <li><strong>vulgarity check → block.</strong> token-level
+        + whole-label match against
+        <a href="https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words">LDNOOBW</a>
+        (Shutterstock's open standard for English profanity
+        filtering, MIT-licensed, ~400 entries). we adopt the list
+        verbatim — no editorializing. runs AFTER the pool / trending
+        allows so public figures whose names contain LDNOOBW tokens
+        ("Dick Cheney", "Carrie Coon", "Alan Cumming") stay
+        public-votable. the pool itself is whole-label-filtered
+        against the same list so slur articles don't appear in
+        autocomplete in the first place.</li>
         <li><strong>cached prior decision → reuse.</strong> targets
         we've seen before keep their previous allow/block ruling.</li>
         <li><strong>has a Wikipedia article → allow.</strong> the
