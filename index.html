@@ -224,6 +224,46 @@
       line-height: 1.45;
     }
 
+    /* Nav grid — used in "read more" section to point at the W-pages.
+       Each card is a popBox link with a big title + one-line sub. */
+    .navgrid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 18px 0 28px;
+    }
+    .navgrid a {
+      display: block;
+      background: var(--paper);
+      border: 3px solid var(--ink);
+      box-shadow: 4px 4px 0 var(--ink);
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-decoration: none;
+      color: var(--ink);
+      transition: transform 0.08s ease;
+    }
+    .navgrid a:hover {
+      transform: translate(-1px, -1px);
+      color: var(--ink);
+    }
+    .navgrid .navtitle {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 22px;
+      letter-spacing: 0.02em;
+      margin-bottom: 4px;
+    }
+    .navgrid .navsub {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      opacity: 0.75;
+      line-height: 1.35;
+    }
+    @media (max-width: 540px) { .navgrid { grid-template-columns: 1fr; } }
+
     a { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
     a:hover { color: var(--red); }
     .small { font-size: 12px; opacity: 0.65; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -282,99 +322,48 @@
       <div class="board-rows" id="board-rows"><div class="small">loading…</div></div>
     </div>
 
-    <h2>how this works</h2>
-    <div class="lede">
-      <strong>every vote is a signed nostr event.</strong> our app is just one view of the public ledger.
-      cloudflare is a cache. anyone can audit.
+    <h2>read more</h2>
+    <p>
+      this is the landing. each of the W-pages picks up one thread of
+      what this thing is, and the deeper coverage lives there. <em>cache
+      is opinion; protocol is record</em> — the property the whole
+      architecture is built around. unpack it whichever angle feels
+      closest:
+    </p>
+    <div class="navgrid">
+      <a href="/what.html">
+        <div class="navtitle">what</div>
+        <div class="navsub">what's blameable, what stays private, the no-logins / no-algorithm shape</div>
+      </a>
+      <a href="/why.html">
+        <div class="navtitle">why</div>
+        <div class="navsub">the journey from "anyone types anything" to "curated pool, public ledger." motivation + values + the property we're defending</div>
+      </a>
+      <a href="/how.html">
+        <div class="navtitle">how</div>
+        <div class="navsub">the architecture. vote flow, ledger, seeding math, moderation pipeline, attestation chain. the long page</div>
+      </a>
+      <a href="/who.html">
+        <div class="navtitle">who</div>
+        <div class="navsub">the identity model. UUID + App Attest stacked. one device, one vote per day, no logins</div>
+      </a>
+      <a href="/privacy.html">
+        <div class="navtitle">privacy</div>
+        <div class="navsub">what crosses the wire (almost nothing), what stays on your device (the rest), who else is in the chain</div>
+      </a>
+      <a href="/terms.html">
+        <div class="navtitle">terms</div>
+        <div class="navsub">use at your own risk, florida law, no UGC, hobby project</div>
+      </a>
+      <a href="/credits.html">
+        <div class="navtitle">credits</div>
+        <div class="navsub">the news sources, libraries, protocols this stands on</div>
+      </a>
+      <a href="/costs.html">
+        <div class="navtitle">costs</div>
+        <div class="navsub">what running this actually costs, line by line, updated as bills land</div>
+      </a>
     </div>
-    <div class="arch">vote flow:
-  iOS client signs vote with a per-device nostr keypair (BIP-340 Schnorr)
-    ├─→ publishes signed event to 7 public nostr relays   (the ledger)
-    └─→ POSTs to cloudflare worker → D1 rollup            (the cache)
-
-read path:
-  this page  →  cloudflare worker → D1 → CDN-cached JSON  (fast)
-  auditors   →  any nostr relay   → recompute from events (true)
-
-if the two ever disagree, the public ledger wins. the cache is opinion;
-the relays are the record.</div>
-
-    <h2 id="verify">verify the math</h2>
-    <div class="lede">
-      <strong>we don't ask you to trust us.</strong> here's exactly how to recompute today's
-      leaderboard yourself from the public nostr ledger. if your numbers don't match ours,
-      we're lying. call us out.
-    </div>
-    <div class="arch">protocol: <a href="https://github.com/nostr-protocol/nips/blob/master/01.md">nostr NIP-01</a>, kind 30078 (parameterized replaceable)
-
-filter:
-  {"kinds":[30078], "#d":["blame.today:dev:vote:&lt;YYYY-MM-DD&gt;"]}
-  (pre-launch namespace; cuts over to "blame.today:v1:vote:..." at launch)
-
-relays we publish to:
-  relay.damus.io      nos.lol           relay.nostr.band
-  relay.snort.social  relay.primal.net  offchain.pub
-  nostr.mom
-
-steps:
-  1. connect to any relay above via WebSocket
-  2. send the filter (see /verify?day=&lt;day&gt; for the exact REQ)
-  3. for each EVENT, parse content as JSON → (pubkey, target)
-  4. group by target. unique pubkey count per target = real_count
-  5. compare to /leaderboard?day=&lt;day&gt;
-
-machine-readable: <a id="verify-link" href="#">/verify?day=&lt;today&gt;</a></div>
-
-    <h2>why this matters</h2>
-    <p>
-      blame.today started as a silly idea i'd had for years. when i tried
-      to actually build it for free, an architecture happened — and once i
-      looked at what the app would display, transparency mattered. the
-      whole thing accidentally turned into a writeup of a reusable
-      pattern: <em>cache is opinion, protocol is record.</em>
-    </p>
-    <p>
-      that same pattern would work for town meetings, HOA votes,
-      public-spending dashboards, contractor reviews — anywhere the org
-      publishing the data has incentive to bend it.
-    </p>
-    <p>
-      the writeup splits across two pages:
-      <strong><a href="/why.html">why this matters →</a></strong>
-      (motivation, values, posture — what we're trying to be, what we're
-      not, the property the architecture is defending) and
-      <strong><a href="/how.html">how this works →</a></strong>
-      (math, architecture, mechanisms — platforms, seeding formula,
-      moderation pipeline, attestation plan, user-flow logic).
-    </p>
-    <p class="small">
-      why includes: what happens if you DDoS the worker, what happens
-      if cloudflare goes down, what happens if i decide to start
-      selling blames, and where else this pattern fits.
-      how includes: the seeding math, the platform tradeoffs, what
-      attestation does and doesn't promise.
-    </p>
-
-    <h2>who's blaming</h2>
-    <p>one device, one vote per day. apple's secure enclave + a hashed
-    per-device id, no logins. how that works without us knowing who you are.
-    <a href="/who.html">see who →</a></p>
-
-    <h2>running costs</h2>
-    <p>we keep an honest tally of what this costs to run, line by line.
-    <a href="/costs.html">see running costs →</a></p>
-
-    <h2>credits</h2>
-    <p>open source libraries, fonts, music, and services we lean on.
-    <a href="/credits.html">see credits →</a></p>
-
-    <h2>privacy</h2>
-    <p>we don't track you. your vote is public by design.
-    <a href="/privacy.html">see privacy policy →</a></p>
-
-    <h2>terms</h2>
-    <p>free app, one vote per day, public + permanent. no warranty, hobby project.
-    <a href="/terms.html">see terms of use →</a></p>
 
     <h2>source</h2>
     <p><a href="https://github.com/blame-today">github.com/blame-today</a> — main app repo private during dev; this marketing site is the public face.</p>
@@ -542,17 +531,13 @@ machine-readable: <a id="verify-link" href="#">/verify?day=&lt;today&gt;</a></di
       renderFullBoard();
     }
 
-    function wireVerifyLink() {
-      const a = document.getElementById('verify-link');
-      if (a) {
-        a.href = `${WORKER_BASE}/verify?day=${today}`;
-        a.textContent = `/verify?day=${today}`;
-      }
-    }
+    // (The /verify?day=... arch block + its #verify-link wiring lived
+    //  here pre-slim; both moved to how.html where the surrounding
+    //  protocol explainer lives. Landing kept sampler + gate + nav
+    //  only, no inline how-it-works content.)
 
     const btn = document.getElementById('reveal-btn');
     if (btn) btn.addEventListener('click', revealBoard);
-    wireVerifyLink();
     loadSampler();
   </script>
   <script src="/footer.js"></script>
